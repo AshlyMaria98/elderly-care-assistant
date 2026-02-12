@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block body_class %}center-mode{% endblock %}
+
+{% block content %}
+<div class="center-wrapper">
+    <div class="glass-card">
+        <h2>My Profile</h2>
+        <hr>
+
+        <p><strong>Name:</strong> {{ user.fullname }}</p>
+        <p><strong>Age:</strong> {{ user.age }}</p>
+        <p><strong>Phone:</strong> {{ user.phone }}</p>
+        <p><strong>Role:</strong> {{ user.role | capitalize }}</p>
+    </div>
+</div>
+{% endblock %}

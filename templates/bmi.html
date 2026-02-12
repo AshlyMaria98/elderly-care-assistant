@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block body_class %}center-mode{% endblock %}
+
+{% block content %}
+<div class="center-wrapper">
+    <div class="glass-card">
+        <h2>BMI Calculator</h2>
+        <form method="POST">
+        <input type="number" name="weight" placeholder="Weight (kg)" required>
+        <input type="number" name="height" placeholder="Height (cm)" required>
+        <button type="submit">Calculate</button>
+        </form>
+
+    {% if result %}
+        <p><b>Your BMI:</b> {{ result }}</p>
+        <p>{{ message }}</p>
+    {% endif %}
+
+    </div>
+</div>
+{% endblock %}

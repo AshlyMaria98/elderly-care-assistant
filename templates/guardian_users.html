@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="content-box">
+        <h2>Registered Elders</h2>
+
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Phone</th>
+            </tr>
+
+            {% for elder in elders %}
+            <tr>
+                <td>{{ elder.fullname }}</td>
+                <td>{{ elder.age }}</td>
+                <td>{{ elder.phone }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock %}

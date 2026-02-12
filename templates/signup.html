@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block body_class %}center-mode{% endblock %}
+
+{% block content %}
+<div class="center-wrapper">
+    <div class="glass-card">
+        <h2>Register</h2>
+
+        {% if error %}
+            <p style="color:red;">{{ error }}</p>
+        {% endif %}
+
+       <form method="POST">
+    <input type="text" name="fullname" placeholder="Full Name" required>
+    <input type="number" name="age" placeholder="Age" required>
+    <input type="text" name="phone" placeholder="Phone">
+    <input type="text" name="username" placeholder="Username" required>
+    <input type="password" name="password" placeholder="Password" required>
+
+    <select name="role" id="role" onchange="toggleGuardianField()" required>
+        <option value="">Select Role</option>
+        <option value="elder">Elder</option>
+        <option value="guardian">Guardian</option>
+    </select>
+
+    <!-- Guardian Username Field (MUST be inside form) -->
+    <div id="guardianField" style="display:none; margin-top:10px;">
+        <input type="text" name="guardian_username" placeholder="Enter Guardian Username">
+    </div>
+
+    <button type="submit">Register</button>
+</form>
+
+        <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+        
+    <script>
+function toggleGuardianField() {
+    var role = document.getElementById("role").value;
+    var field = document.getElementById("guardianField");
+
+    if (role === "elder") {
+        field.style.display = "block";
+    } else {
+        field.style.display = "none";
+    }
+}
+</script>
+
+
+    </div>
+</div>
+{% endblock %}

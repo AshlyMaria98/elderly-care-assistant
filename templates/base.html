@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ElderCare Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body class="{% block body_class %}{% endblock %}">
+
+{% if session.get('user_id') %}
+<div class="navbar">
+    <div class="nav-left">
+        {% if request.endpoint not in ['elder_dashboard','guardian_dashboard'] %}
+           {% if session.get('role') == 'elder' %}
+                <a href="{{ url_for('elder_dashboard') }}" class="back-btn">⬅</a>
+            {% elif session.get('role') == 'guardian' %}
+                <a href="{{ url_for('guardian_dashboard') }}" class="back-btn">⬅</a>
+            {% endif %}
+
+        {% endif %}
+    </div>
+    <div class="nav-right">
+        <a href="{{ url_for('profile') }}">Profile</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</div>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-wrapper">
+
+        <div class="dashboard-heading">
+            <h2>Guardian Dashboard</h2>
+            <p>Monitor and support your elders efficiently</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h3>View My Elders</h3>
+                <a href="{{ url_for('view_elders') }}">
+                    <button class="btn-small">Go</button>
+                </a>
+            </div>
+
+            <div class="card">
+                <h3>Reminders</h3>
+                <button class="btn-small">Go</button>
+            </div>
+
+            <div class="card">
+                <h3>Emergency Alerts</h3>
+                <button class="btn-small">Go</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block body_class %}center-mode{% endblock %}
+
+{% block content %}
+<div class="center-wrapper">
+    <div class="glass-card">
+        <h1>Welcome to ElderCare Assistant</h1>
+        <p>Helping elders stay safe and healthy</p>
+        <br>
+        <a href="{{ url_for('login') }}">
+            <button class="btn-small">Get Started</button>
+        </a>
+    </div>
+</div>
+{% endblock %}

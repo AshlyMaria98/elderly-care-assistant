@@ -48,7 +48,6 @@ def landing():
 
 
 # ---------------- SIGNUP ----------------
-# ---------------- SIGNUP ----------------
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     error = None
@@ -195,7 +194,7 @@ def profile():
     return render_template('profile.html', user=user)
 
 
-# ---------------- BMI ----------------
+
 # ---------------- BMI ----------------
 @app.route('/bmi', methods=['GET', 'POST'])
 def bmi():

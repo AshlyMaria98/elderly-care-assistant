@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Tasks</title>
+    <style>
+        body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+
+    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+    .container {
+    width: 650px;
+}
+    h2 {
+    text-align: center;
+    color: #1e3d4a;
+    margin-bottom: 25px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+     .card {
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 20px;
+    padding: 22px;
+    margin: 15px 0;
+
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+
+    color: #1e3d4a;
+    transition: 0.3s ease;
+}
+    .card:hover {
+    transform: translateY(-4px);
+}
+
+        .completed {
+            color: rgb(29, 245, 29);
+            font-weight: bold;
+        }
+
+        .pending {
+            color: orange;
+            font-weight: bold;
+        }
+        .complete-btn {
+        background-color: #4CAF50;   /* Green */
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        }
+
+    .complete-btn:hover {   
+        background-color: #146918;
+}
+.glass-btn {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 12px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.4);
+    color: #523737;
+
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transition: 0.3s;
+    font-weight: 500;
+}
+
+.glass-btn:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+
+    </style>
+</head>
+<body>
+<div class="container">
+<h2>My Daily Tasks</h2>
+
+{% for t in tasks %}
+    <div class="card">
+        {% if session['role'] == 'guardian' %}
+    <strong>Elder:</strong> {{ t['elder_name'] }} <br>
+        {% endif %}<br>
+
+        <strong>{{ t['task_name'] }}</strong><br><br>
+        Date: {{ t['date'] }}<br>
+            <br>
+        {% if t['completed'] == 1 %}
+            <span class="completed">Completed</span>
+        {% else %}
+            <span class="pending">Pending</span><br><br>
+
+    <form action="{{ url_for('complete_task', id=t['id']) }}" method="get">
+    <button type="submit" class="complete-btn">
+        Mark Completed
+    </button>
+</form>
+
+
+{% endif %}
+    </div>
+{% else %}
+    <p>No tasks found.</p>
+{% endfor %}
+
+{% if session['role'] == 'elder' %}
+    <a href="{{ url_for('view_reminders') }}">
+{% else %}
+    <a href="{{ url_for('view_reminders') }}">
+{% endif %}
+    ← Back
+</a>
+
+</div>
+</body>
+</html>

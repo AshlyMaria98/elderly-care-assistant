@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medicine & Task Manager</title>
+
+     <style>
+        body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+
+    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+    .container {
+    width: 650px;
+}
+
+h2 {
+    text-align: center;
+    color: #1e3d4a;
+    margin-bottom: 25px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+        .menu {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .menu a:hover {
+            background-color: #45a049;
+        }
+
+        .reminder-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 20px;
+    padding: 22px;
+    margin: 15px 0;
+
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+
+    color: #1e3d4a;
+    transition: 0.3s ease;
+}
+    .card:hover {
+    transform: translateY(-4px);
+}
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .pending {
+            color: orange;
+        }
+
+        .completed {
+            color: green;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 12px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+        }
+    .glass-btn {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 12px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.4);
+    color: #523737;
+
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transition: 0.3s;
+    font-weight: 500;
+}
+
+.glass-btn:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Medicine & Task Manager</h2>
+
+    <!-- ===== MENU OPTIONS ===== -->
+    <div>
+        <a href="{{ url_for('add_reminder') }}">Add Reminder</a> |
+        <a href="{{ url_for('due_today') }}">Due Today</a> |
+        <a href="{{ url_for('missed_reminders') }}">Missed Reminders</a> |
+        <a href="{{ url_for('add_task') }}">Add Task</a> |
+        <a href="{{ url_for('view_tasks') }}">View Tasks</a>
+    </div>
+
+    <hr>
+
+    <!-- ===== REMINDER LIST ===== -->
+    <div class="reminder-container">
+
+    {% for r in reminders %}
+        <div class="card">
+             {% if session['role'] == 'guardian' %}
+            <strong>Elder:</strong> {{ r['elder_name'] }} <br>
+            {% endif %}<br>
+            <h3>{{ r['title'] }}</h3>
+            <p><strong>Type:</strong> {{ r['type'] }}</p>
+            <p><strong>Date:</strong> {{ r['date'] }}</p>
+            <p><strong>Time:</strong> {{ r['time'] }}</p>
+
+            {% if r['notes'] %}
+    <strong>Note:</strong> {{ r['notes'] }} <br>
+{% endif %}
+
+            <p class="status 
+                {% if r['status'] == 'completed' %}
+                    completed
+                {% else %}
+                    pending
+                {% endif %}
+            ">
+                Status: {{ r['status'] }}
+            </p>
+
+            {% if r['status'] == 'pending' %}
+                <a class="btn" href="{{ url_for('complete_reminder', id=r['id']) }}">
+                    Mark Completed
+                </a>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>No reminders found.</p>
+    {% endfor %}
+
+</div>
+
+{% if session['role'] == 'elder' %}
+    <a class="back" href="{{ url_for('elder_dashboard') }}">
+{% else %}
+    <a class="back" href="{{ url_for('guardian_dashboard') }}">
+{% endif %}
+    ← Back to Dashboard
+</a>
+
+</div>
+</body>
+</html>

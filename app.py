@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
+from datetime import datetime
+from datetime import date
 
 app = Flask(__name__)
 app.secret_key = "secret_key"
@@ -33,6 +35,37 @@ def create_tables():
         conn.execute("ALTER TABLE users ADD COLUMN guardian_id INTEGER")
     except:
         pass  # Column already exists, ignore error
+#____________________module 1 db ending________________________________
+#_______________________________________________________________________
+#____________________module 2 db starting_____________________________
+    # ---------------- REMINDERS TABLE ----------------
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS reminders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            elder_id INTEGER,
+            title TEXT NOT NULL,
+            type TEXT NOT NULL,
+            date TEXT NOT NULL,
+            time TEXT NOT NULL,
+            status TEXT DEFAULT 'pending',
+            notes TEXT,
+            created_by TEXT DEFAULT 'elder',
+            FOREIGN KEY (elder_id) REFERENCES users(id)
+        )
+    """)
+
+    # ---------------- ROUTINE TASKS TABLE ----------------
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS routine_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            elder_id INTEGER,
+            task_name TEXT NOT NULL,
+            date TEXT NOT NULL,
+            completed INTEGER DEFAULT 0,
+            FOREIGN KEY (elder_id) REFERENCES users(id)
+        )
+    """)
+
 
     conn.commit()
     conn.close()
@@ -254,14 +287,313 @@ def forgot_password():
         conn.close()
 
     return render_template('forgot_password.html', message=message)
+#---------------------module 1 break-------------------------
+#_________________module 2 reminder route starting_______________________
+#------------------------ADD REMINDER-----------------------
+
+@app.route('/add_reminder', methods=['GET', 'POST'])
+def add_reminder():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+
+    if request.method == 'POST':
+        title = request.form['title']
+        reminder_type = request.form['type']
+        date_value = request.form['date']
+        time_value = request.form['time']
+        notes = request.form['notes']
+
+        if session['role'] == 'elder':
+            elder_id = session['user_id']
+        else:
+            elder_id = request.form['elder_id']
+
+        conn.execute("""
+            INSERT INTO reminders 
+            (title, type, date, time, status, notes, elder_id)
+            VALUES (?, ?, ?, ?, 'pending', ?, ?)
+        """, (title, reminder_type, date_value, time_value, notes, elder_id))
+
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for('view_reminders'))
+
+    # GET request
+    if session['role'] == 'guardian':
+        elders = conn.execute("""
+            SELECT * FROM users
+            WHERE guardian_id = ?
+        """, (session['user_id'],)).fetchall()
+    else:
+        elders = None
+
+    conn.close()
+    return render_template('add_reminder.html', elders=elders)
+
+#------------------------VIEW REMINDER-----------------------
+  
+@app.route('/view_reminders')
+def view_reminders():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+
+    if session['role'] == 'elder':
+        reminders = conn.execute("""
+            SELECT * FROM reminders
+            WHERE elder_id = ?
+            ORDER BY date, time
+        """, (session['user_id'],)).fetchall()
+
+    else:  # guardian
+       reminders = conn.execute("""
+        SELECT r.*, u.fullname AS elder_name
+        FROM reminders r
+        JOIN users u ON r.elder_id = u.id
+        WHERE u.guardian_id = ?
+        ORDER BY r.date, r.time
+        """, (session['user_id'],)).fetchall()
 
 
+    conn.close()
+
+    return render_template('view_reminders.html', reminders=reminders)
+
+
+#---------------------------MARK REMINDER AS COMPLETED----------------
+
+@app.route('/complete_reminder/<int:id>')
+def complete_reminder(id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+
+    reminder = conn.execute("""
+        SELECT * FROM reminders WHERE id = ?
+    """, (id,)).fetchone()
+
+    if session['role'] == 'elder' and reminder['elder_id'] != session['user_id']:
+        return "Unauthorized"
+
+    if session['role'] == 'guardian':
+        check = conn.execute("""
+            SELECT r.* FROM reminders r
+            JOIN users u ON r.elder_id = u.id
+            WHERE r.id = ? AND u.guardian_id = ?
+        """, (id, session['user_id'])).fetchone()
+
+        if not check:
+            return "Unauthorized"
+
+    conn.execute("""
+        UPDATE reminders SET status = 'completed'
+        WHERE id = ?
+    """, (id,))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('view_reminders'))
+
+
+#----------------------------------------SHOW DUE TODAY------------------
+
+@app.route('/due_today')
+def due_today():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    today = date.today().isoformat()
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+
+    if session['role'] == 'elder':
+        reminders = conn.execute("""
+            SELECT * FROM reminders
+            WHERE elder_id = ?
+            AND date = ?
+            AND status = 'pending'
+            ORDER BY time
+        """, (session['user_id'], today)).fetchall()
+
+    else:  # guardian
+        reminders = conn.execute("""
+    SELECT r.*, u.fullname AS elder_name
+    FROM reminders r
+    JOIN users u ON r.elder_id = u.id
+    WHERE u.guardian_id = ?
+    AND r.date = ?
+    AND r.status = 'pending'
+    ORDER BY r.time
+""", (session['user_id'], today)).fetchall()
+
+    conn.close()
+
+    return render_template('due_today.html', reminders=reminders)
+
+#---------------------------MISSED REMINDERS-------------------
+
+@app.route('/missed_reminders')
+def missed_reminders():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+
+    if session['role'] == 'elder':
+        reminders = conn.execute("""
+            SELECT * FROM reminders
+            WHERE elder_id = ?
+            AND status = 'pending'
+            AND (date || ' ' || time) < ?
+            ORDER BY date, time
+        """, (session['user_id'], now)).fetchall()
+
+    else:  # guardian
+        reminders = conn.execute("""
+            SELECT r.*, u.fullname AS elder_name
+            FROM reminders r
+            JOIN users u ON r.elder_id = u.id
+            WHERE u.guardian_id = ?
+            AND r.status = 'pending'
+            AND (r.date || ' ' || r.time) < ?
+            ORDER BY r.date, r.time
+        """, (session['user_id'], now)).fetchall()
+
+    conn.close()
+
+    return render_template('missed_reminders.html', reminders=reminders)
+
+#---------------------------ADD DAILY ROUTINE TASK---------------------
+@app.route('/add_task', methods=['GET', 'POST'])
+def add_task():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+
+    if request.method == 'POST':
+        task_name = request.form['task_name']
+        date = request.form['date']
+
+        if session['role'] == 'elder':
+            elder_id = session['user_id']
+        else:
+            elder_id = request.form['elder_id']
+
+        conn.execute("""
+            INSERT INTO routine_tasks (elder_id, task_name, date)
+            VALUES (?, ?, ?)
+        """, (elder_id, task_name, date))
+
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for('view_tasks'))
+
+    # GET request
+    if session['role'] == 'guardian':
+        elders = conn.execute("""
+            SELECT * FROM users
+            WHERE guardian_id = ?
+        """, (session['user_id'],)).fetchall()
+    else:
+        elders = None
+
+    conn.close()
+    return render_template('add_task.html', elders=elders)
+
+
+#-----------------------------------------VIEW TASKS-------------------
+@app.route('/view_tasks')
+def view_tasks():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+
+    if session['role'] == 'elder':
+        tasks = conn.execute("""
+            SELECT * FROM routine_tasks
+            WHERE elder_id=?
+            ORDER BY date
+        """, (session['user_id'],)).fetchall()
+
+    else:
+        tasks = conn.execute("""
+       SELECT t.*, u.fullname AS elder_name
+        FROM routine_tasks t
+        JOIN users u ON t.elder_id = u.id
+        WHERE u.guardian_id = ?
+        ORDER BY t.date
+        """, (session['user_id'],)).fetchall()
+
+
+    conn.close()
+
+    return render_template('view_tasks.html', tasks=tasks)
+
+#------------------------------MARK TASK COMPLETED-----------------
+
+@app.route('/complete_task/<int:id>')
+def complete_task(id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+
+    task = conn.execute("""
+        SELECT * FROM routine_tasks WHERE id=?
+    """, (id,)).fetchone()
+
+    if not task:
+        return "Task not found"
+
+    if session['role'] == 'elder':
+        if task['elder_id'] != session['user_id']:
+            return "Unauthorized"
+
+    else:  # guardian
+        check = conn.execute("""
+            SELECT t.* FROM routine_tasks t
+            JOIN users u ON t.elder_id = u.id
+            WHERE t.id=? AND u.guardian_id=?
+        """, (id, session['user_id'])).fetchone()
+
+        if not check:
+            return "Unauthorized"
+
+    conn.execute("""
+        UPDATE routine_tasks
+        SET completed=1
+        WHERE id=?
+    """, (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('view_tasks'))
+
+
+#________________module 2 reminder route ending__________________________
+#--------------------module 1 break continues-------------------
 # ---------------- LOGOUT ----------------
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('landing'))
-
+#___________________module 1 route ending__________________________
 
 if __name__ == '__main__':
     app.run(debug=True)

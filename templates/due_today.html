@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Due Today</title>
+    <style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', sans-serif;
+        height: 100vh;
+
+        /* Beautiful gradient background */
+        background: linear-gradient(135deg, #ffecd2, #fcb69f);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .container {
+        width: 600px;
+    }
+
+    h1 {
+        text-align: center;
+        color:#1e3d4a;
+        margin-bottom: 20px;
+    }
+   .card {
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 20px;
+    padding: 22px;
+    margin: 15px 0;
+
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+
+    color: #1e3d4a;
+    transition: 0.3s ease;
+}
+    .card:hover {
+    transform: translateY(-4px);
+}
+    .title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+    .back {
+    display: block;
+    text-align: center;
+    margin-top: 25px;
+    padding: 10px;
+    text-decoration: none;
+    color:#523737;
+
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
+    transition: 0.3s;
+}
+
+.back:hover {
+    background: rgba(138, 63, 63, 0.3);
+}
+
+
+
+</style>
+
+</head>
+<body>
+<div class="container">
+
+<h1>Due Today</h1>
+
+{% for r in reminders %}
+    <div class="card">
+        {% if session['role'] == 'guardian' %}
+            <strong>Elder:</strong> {{ r['elder_name'] }} <br><br>
+        {% endif %}
+
+        <div class="title">{{ r['title'] }}</div><br>
+        Date: {{ r['date'] }} <br>
+        Time: {{ r['time'] }}
+    </div>
+{% else %}
+    <p>No reminders today.</p>
+{% endfor %}
+
+
+<a class="back" href="{{ url_for('view_reminders') }}">← Back</a>
+</div>
+</body>
+</html>

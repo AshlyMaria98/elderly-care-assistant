@@ -11,6 +11,7 @@
         </div>
 
         <div class="dashboard">
+
             <div class="card">
                 <h3>View My Elders</h3>
                 <a href="{{ url_for('view_elders') }}">
@@ -21,16 +22,33 @@
             <div class="card">
                 <h3>Reminders</h3>
                 <a href="{{ url_for('view_reminders') }}">
-    <button class="btn-small">Go</button>
-</a>
+                    <button class="btn-small">Go</button>
+                </a>
             </div>
 
             <div class="card">
                 <h3>Emergency Alerts</h3>
                 <button class="btn-small">Go</button>
             </div>
+
+            <!-- NEW CARD -->
+            <div class="card">
+                <h3>Latest Health Records</h3>
+                <a href="{{ url_for('guardian_health') }}">
+                    <button class="btn-small">Go</button>
+                </a>
+            </div>
+
+            <!-- NEW CARD -->
+            <div class="card">
+                <h3>Latest Mood Status</h3>
+                <a href="{{ url_for('guardian_latest_moods') }}">
+                    <button class="btn-small">Go</button>
+                </a>
+            </div>
+
         </div>
 
     </div>
 </div>
-{% endblock %}
+{% endblock %} 

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+
+{% block content %}
+<div class="center-wrapper">
+    <div class="glass-card">
+        <h2>Add Mood Record</h2>
+        <form method="POST">
+            <input type="text" name="mood" placeholder="Mood (e.g., Happy, Sad)" required>
+            <button type="submit">Add Record</button>
+        </form>
+        <a href="{{ url_for('view_mood') }}">
+            <button class="btn-small" style="margin-top: 10px;">View Mood Logs</button>
+        </a>
+    </div>
+</div>
+{% endblock %}

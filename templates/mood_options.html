@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="content-box" style="text-align:center; padding: 30px;">
+        <h2>Mood Data</h2>
+        <p style="font-size: 18px; margin-bottom: 30px;">Choose an option below:</p>
+
+        <!-- Mood Tracker Button -->
+        <a href="{{ url_for('mood_hub') }}">
+            <button class="btn-large" style="width: 250px; height: 60px; font-size: 18px; margin: 20px;">
+                Mood Tracker
+            </button>
+        </a>
+
+        <!-- View Mood Button -->
+        <a href="{{ url_for('view_moods') }}">
+            <button class="btn-large" style="width: 250px; height: 60px; font-size: 18px; margin: 20px;">
+                View Mood
+            </button>
+        </a>
+    </div>
+</div>
+{% endblock %}

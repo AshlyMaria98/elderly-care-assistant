@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="content-box">
+        <h2>Health Records</h2>
+        <a href="{{ url_for('add_health') }}">
+            <button class="btn-small" style="margin-bottom: 20px;">Add New Record</button>
+        </a>
+
+        {% if records %}
+        <!-- Health Records Table -->
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>BP</th>
+                <th>Sugar</th>
+                <th>Pulse</th>
+                <th>Weight</th>
+                <th>Height</th>
+                <th>BMI</th>
+                <th>Insights</th>
+                <th>Action</th>
+            </tr>
+            {% for r, ins in zip(records, insights) %}
+            <tr>
+                <td>{{ r.date }}</td>
+                <td>{{ r.bp }}</td>
+                <td>{{ r.sugar }}</td>
+                <td>{{ r.pulse }}</td>
+                <td>{{ r.weight }}</td>
+                <td>{{ r.height }}</td>
+                <td>{{ r.bmi }}</td>
+                <td>
+                    {% for msg in ins %}
+                        <p style="margin:0;">{{ msg }}</p>
+                    {% endfor %}
+                </td>
+                <td>
+                    <a href="{{ url_for('delete_health', record_id=r.id) }}" onclick="return confirm('Are you sure you want to delete this record?');">
+                        <button class="btn-small" style="background-color:red;color:white;">Delete</button>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <!-- Chart Section -->
+        <div style="margin-top:40px;">
+            <h3>Health Metrics Chart</h3>
+            <canvas id="healthChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            const ctx = document.getElementById('healthChart').getContext('2d');
+
+            const dates = {{ records|map(attribute='date')|list|tojson }};
+            const bp = {{ bp_list|tojson }};
+            const bmi = {{ records|map(attribute='bmi')|map('float')|list|tojson }};
+            const sugar = {{ records|map(attribute='sugar')|map('int')|map('default', null)|list|tojson }};
+            const pulse = {{ records|map(attribute='pulse')|map('int')|map('default', null)|list|tojson }};
+
+            const healthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'BP',
+                            data: bp,
+                            borderColor: 'purple',
+                            backgroundColor: 'rgba(128,0,128,0.1)',
+                            tension: 0.3,
+                            spanGaps: true
+                        },
+                        {
+                            label: 'BMI',
+                            data: bmi,
+                            borderColor: 'blue',
+                            backgroundColor: 'rgba(0,0,255,0.1)',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Sugar',
+                            data: sugar,
+                            borderColor: 'green',
+                            backgroundColor: 'rgba(0,255,0,0.1)',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Pulse',
+                            data: pulse,
+                            borderColor: 'red',
+                            backgroundColor: 'rgba(255,0,0,0.1)',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Health Metrics Over Time' }
+                    },
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+        </script>
+
+        {% else %}
+        <p>No health records found. Add a new record above.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

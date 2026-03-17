@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-wrapper">
+
+        <div class="dashboard-heading">
+            <h2>Add Health Record</h2>
+            <p>Enter your latest health details</p>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="content-box">
+                <form method="POST">
+                    <label>Blood Pressure (e.g., 120/80)</label>
+                    <input type="text" name="bp" value="{{ bp | default('') }}" required>
+
+                    <label>Sugar Level (mg/dL)</label>
+                    <input type="text" name="sugar" value="{{ sugar | default('') }}" required>
+
+                    <label>Pulse</label>
+                    <input type="text" name="pulse" value="{{ pulse | default('') }}" required>
+
+                    <label>Weight (kg)</label>
+                    <input type="number" step="0.1" name="weight" value="{{ weight | default('') }}" required>
+
+                    <label>Height (cm)</label>
+                    <input type="number" step="0.1" name="height" value="{{ height | default('') }}" required>
+
+                    <button type="submit">Add Record</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

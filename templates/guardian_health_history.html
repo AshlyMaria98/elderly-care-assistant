@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="content-box">
+        <h2 style="text-align:center;">{{ elder.fullname }}'s Health History</h2>
+        <p style="text-align:center;">Age: {{ elder.age }} | Guardian View</p>
+
+        {% if records %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>BP</th>
+                    <th>Sugar</th>
+                    <th>Pulse</th>
+                    <th>Weight</th>
+                    <th>Height</th>
+                    <th>BMI</th>
+                    <th>Insights</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r, msg in zip(records, insights) %}
+                <tr>
+                    <td>{{ r.date|datetimeformat }}</td>
+
+                    <td {% if "High BP" in msg|string %}style="color:red;font-weight:600"{% endif %}>
+                        {{ r.bp or "-" }}
+                    </td>
+
+                    <td {% if "High sugar" in msg|string %}style="color:red;font-weight:600"{% endif %}>
+                        {{ r.sugar or "-" }}
+                    </td>
+
+                    <td>{{ r.pulse or "-" }}</td>
+                    <td>{{ r.weight or "-" }}</td>
+                    <td>{{ r.height or "-" }}</td>
+
+                    <td {% if r.bmi > 25 or r.bmi < 18.5 %}style="color:red;font-weight:600"{% endif %}>
+                        {{ r.bmi or "-" }}
+                    </td>
+
+                    <td>
+                        {% for m in msg %}
+                            <div style="margin-bottom:3px;">• {{ m }}</div>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Your original BP trend boxes -->
+        <div style="margin-top:40px;">
+            <h3 style="text-align:center;">BP Trend (Systolic)</h3>
+
+            <div style="text-align:center;">
+                {% for bp, date in zip(bp_list, dates) %}
+                <span style="display:inline-block; margin:3px; padding:6px 10px;
+                             background:#2563eb; color:white; border-radius:6px;">
+                    {{ date }} : {{ bp }}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ADDED SMALL CHART -->
+        <div style="margin-top:40px;">
+            <h3 style="text-align:center;">Health Trend Chart</h3>
+            <canvas id="healthChart" height="120"></canvas>
+        </div>
+
+        {% else %}
+        <p style="text-align:center; color:#555; margin-top:20px;">
+            No health records found for this elder.
+        </p>
+        {% endif %}
+
+        <div style="text-align:center; margin-top:30px;">
+            <a href="{{ url_for('guardian_health') }}">
+                <button>Back to Health Overview</button>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+window.onload = function() {
+
+const ctx = document.getElementById('healthChart');
+
+if(ctx){
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ dates|tojson }},
+        datasets: [
+            {
+                label: 'BP',
+                data: {{ bp_list|tojson }},
+                borderColor: 'red',
+                fill: false,
+                tension: 0.3
+            },
+            {
+                label: 'Sugar',
+                data: {{ sugar_list|tojson }},
+                borderColor: 'blue',
+                fill: false,
+                tension: 0.3
+            },
+            {
+                label: 'Pulse',
+                data: {{ pulse_list|tojson }},
+                borderColor: 'green',
+                fill: false,
+                tension: 0.3
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: true }
+        }
+    }
+});
+
+}
+
+}
+</script>
+
+<style>
+.content-box {
+    background: rgba(255,255,255,0.95);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+th {
+    background: #2563eb;
+    color: white;
+}
+
+tr:hover {
+    background: #f0f0f0;
+}
+</style>
+
+{% endblock %}

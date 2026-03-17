@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+
+{% block content %}
+
+<div class="mood-wrapper">
+
+    <div class="mood-card">
+
+        <!-- Header -->
+        <div class="mood-header">
+            <h2>Mood Tracker</h2>
+            <img src="{{ url_for('static', filename='images/relax.png') }}" class="mood-image">
+        </div>
+
+        <form method="POST">
+
+            <label>How are you feeling today?</label>
+            <select name="mood" required>
+                <option value="">Select mood</option>
+                <option value="happy">😊 Happy</option>
+                <option value="sad">😢 Sad</option>
+                <option value="stressed">😟 Stressed</option>
+                <option value="tension">😣 Tension</option>
+                <option value="angry">😤 Angry</option>
+                <option value="tired">😴 Tired</option>
+                <option value="calm">🌸 Calm</option>
+                <option value="lonely">😔 Lonely</option>
+            </select>
+
+            <label>Reason (optional)</label>
+            <select name="reason">
+                <option value="">Select reason</option>
+                <option value="work">Work</option>
+                <option value="family">Family</option>
+                <option value="health">Health</option>
+                <option value="loneliness">Loneliness</option>
+                <option value="sleep">Sleep</option>
+                <option value="other">Other</option>
+            </select>
+
+            <label>Notes</label>
+            <textarea name="notes" rows="3"
+                placeholder="Example: BP high, headache, can't sleep..."></textarea>
+
+            <button type="submit">Save Mood</button>
+
+        </form>
+
+        {% if suggestion %}
+        <div class="suggestion-card">
+
+            <h4>Helpful Suggestion</h4>
+
+            <p>{{ suggestion }}</p>
+
+            <img src="{{ url_for('static', filename='images/support.png') }}">
+
+        </div>
+        {% endif %}
+        {% if alert %}
+        <div style="
+        background:#ffe6e6;
+        color:#8b0000;
+        padding:15px;
+        border-radius:10px;
+        margin-top:20px;
+        border-left:6px solid red;
+        font-size:16px;
+        ">
+
+        <strong>Wellbeing Alert</strong><br>
+        {{ alert }}
+
+        </div>
+        {% endif %}
+
+        <div class="back-link">
+            <a href="{{ url_for('mood_options') }}">← Back</a>
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+
+/* Center layout */
+
+.mood-wrapper{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:80vh;
+}
+
+/* Main card */
+
+.mood-card{
+    width:430px;
+    max-width:90%;
+    padding:30px;
+    border-radius:20px;
+    background:rgba(255,255,255,0.88);
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+/* Header */
+
+.mood-header{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.mood-header h2{
+    color:#486c7a;
+    margin-bottom:10px;
+}
+
+.mood-image{
+    width:70px;
+}
+
+/* Inputs */
+
+.mood-card label{
+    display:block;
+    margin-top:12px;
+    font-weight:600;
+}
+
+.mood-card select,
+.mood-card textarea{
+    width:100%;
+    padding:10px;
+    margin-top:6px;
+    border-radius:8px;
+    border:1px solid #d6dbe0;
+}
+
+/* Button */
+
+.mood-card button{
+    width:100%;
+    margin-top:16px;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#6ea8a8;
+    color:white;
+    font-size:15px;
+    cursor:pointer;
+}
+
+/* Suggestion card */
+
+.suggestion-card{
+    margin-top:20px;
+    padding:15px;
+    border-radius:12px;
+    background:#eef6f6;
+    text-align:center;
+}
+
+.suggestion-card img{
+    width:45px;
+    margin-top:8px;
+}
+
+/* Back link */
+
+.back-link{
+    text-align:center;
+    margin-top:15px;
+}
+
+.back-link a{
+    text-decoration:none;
+    color:#4d7c7c;
+}
+
+</style>
+
+{% endblock %}

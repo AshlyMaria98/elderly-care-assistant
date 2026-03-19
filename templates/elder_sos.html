@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode {% endblock %}
+
+{% block content %}
+<div class="sos-container">
+
+    <div class="sos-card">
+
+        <h1 class="sos-title">🚨 Emergency Help</h1>
+        <p class="sos-subtitle">
+            Press the button below to instantly alert your guardian
+        </p>
+
+        <form action="/send_sos" method="POST">
+            <button type="submit" class="sos-button">
+                🚨 SEND SOS ALERT
+            </button>
+        </form>
+        {% if message %}
+    <p style="color:green; font-weight:bold; margin-top:15px;">
+        {{ message }}
+    </p>
+{% endif %}
+        <br>
+        <a href="/sos_history" class="sos-history-btn">
+            View Alert History
+        </a>
+
+    </div>
+
+</div>
+{% endblock %}

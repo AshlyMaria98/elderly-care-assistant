@@ -28,7 +28,10 @@
 
             <div class="card">
                 <h3>Emergency Alerts</h3>
-                <button class="btn-small">Go</button>
+                <a href="{{ url_for('guardian_latest_sos') }}">
+                    <button class="btn-small">Go</button>
+                </a>
+               
             </div>
 
             <!-- NEW CARD -->
@@ -51,4 +54,30 @@
 
     </div>
 </div>
+<audio id="sosSound" src="{{ url_for('static', filename='alert.mp3') }}"></audio>
+
+<script>
+let lastSOS = null;
+let audio = document.getElementById("sosSound");
+
+function checkSOS() {
+    fetch('/check_new_sos')
+    .then(res => res.json())
+    .then(data => {
+        if (data.new && data.id !== lastSOS) {
+            lastSOS = data.id;
+
+            // 🔊 Play ONLY when SOS comes
+            audio.currentTime = 0;
+            audio.play();
+
+            alert("🚨 SOS ALERT RECEIVED!");
+        }
+    });
+}
+
+// Check every 5 sec
+setInterval(checkSOS, 5000);
+</script>
+
 {% endblock %} 

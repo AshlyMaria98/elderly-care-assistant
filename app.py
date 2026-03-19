@@ -102,6 +102,17 @@ def create_tables():
             FOREIGN KEY (elder_id) REFERENCES users(id)
         )
     """)
+# ---------------- SOS ALERTS TABLE ----------------
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS sos_alerts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            elder_id INTEGER,
+            message TEXT,
+            date_time TEXT,
+            status TEXT DEFAULT 'pending',
+            FOREIGN KEY (elder_id) REFERENCES users(id)
+        )
+    """)
     conn.commit()
     conn.close()
 
@@ -1141,5 +1152,153 @@ def view_moods():
         })
 
     return render_template("view_mood_table.html", mood_data=mood_data)
-if __name__ == '__main__':
-    app.run(debug=True)
+# ---------------- SOS PAGE (ELDER) ----------------
+@app.route('/sos')
+def sos():
+    if 'user_id' not in session or session['role'] != 'elder':
+        return redirect(url_for('login'))
+    return render_template('elder_sos.html')
+
+
+# ---------------- SEND SOS ----------------
+@app.route('/send_sos', methods=['POST'])
+def send_sos():
+    if 'user_id' not in session or session['role'] != 'elder':
+        return redirect(url_for('login'))
+
+    elder_id = session['user_id']
+    message = "Emergency alert triggered by elder"
+    date_time = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT INTO sos_alerts (elder_id, message, date_time, status)
+        VALUES (?, ?, ?, 'pending')
+    """, (elder_id, message, date_time))
+    conn.commit()
+    conn.close()
+
+    return render_template('elder_sos.html', message="🚨 SOS Alert Sent Successfully!")
+
+
+# ---------------- SOS HISTORY (ELDER) ----------------
+@app.route('/sos_history')
+def sos_history():
+    if 'user_id' not in session or session['role'] != 'elder':
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    alerts = conn.execute("""
+        SELECT * FROM sos_alerts
+        WHERE elder_id = ?
+        ORDER BY date_time DESC
+    """, (session['user_id'],)).fetchall()
+    conn.close()
+
+    return render_template('sos_history.html', alerts=alerts)
+
+
+# ---------------- GUARDIAN VIEW SOS ----------------
+@app.route('/guardian_sos_alerts')
+def guardian_sos_alerts():
+    if 'user_id' not in session or session['role'] != 'guardian':
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+
+    alerts = conn.execute("""
+        SELECT s.*, u.fullname as elder_name
+        FROM sos_alerts s
+        JOIN users u ON s.elder_id = u.id
+        WHERE u.guardian_id = ?
+        ORDER BY s.date_time DESC
+    """, (session['user_id'],)).fetchall()
+
+    conn.close()
+
+    return render_template('guardian_sos_alerts.html', alerts=alerts)
+
+
+# ---------------- RESOLVE SOS ----------------
+@app.route('/resolve_sos/<int:id>')
+def resolve_sos(id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+
+    conn.execute("""
+        UPDATE sos_alerts
+        SET status = 'resolved'
+        WHERE id = ?
+    """, (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('guardian_sos_alerts'))
+# ---------------- DELETE SOS ALERT (NEW) ----------------
+@app.route('/delete_alert/<int:id>')
+def delete_alert(id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+
+    conn.execute("""
+        DELETE FROM sos_alerts
+        WHERE id = ?
+    """, (id,))
+
+    conn.commit()
+    conn.close()
+
+    # ✅ FIX: redirect based on role
+    if session['role'] == 'elder':
+        return redirect(url_for('sos_history'))
+    else:
+        return redirect(url_for('guardian_sos_alerts'))
+@app.route('/check_new_sos')
+def check_new_sos():
+    if 'user_id' not in session or session['role'] != 'guardian':
+        return {"new": False}
+
+    conn = get_db_connection()
+
+    alert = conn.execute("""
+        SELECT s.id, s.date_time
+        FROM sos_alerts s
+        JOIN users u ON s.elder_id = u.id
+        WHERE u.guardian_id = ?
+        AND s.status = 'pending'
+        ORDER BY s.date_time DESC
+        LIMIT 1
+    """, (session['user_id'],)).fetchone()
+
+    conn.close()
+
+    if alert:
+        return {"new": True, "id": alert["id"], "time": alert["date_time"]}
+    else:
+        return {"new": False}
+@app.route('/guardian_latest_sos')
+def guardian_latest_sos():
+        if 'user_id' not in session or session['role'] != 'guardian':
+            return redirect(url_for('login'))
+
+        conn = get_db_connection()
+
+        latest = conn.execute("""
+             SELECT s.*, u.fullname as elder_name
+            FROM sos_alerts s
+             JOIN users u ON s.elder_id = u.id
+            WHERE u.guardian_id = ?
+            ORDER BY s.date_time DESC
+            LIMIT 1
+         """, (session['user_id'],)).fetchone()
+
+        conn.close()
+
+        return render_template('guardian_latest_sos.html', alert=latest)    
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)

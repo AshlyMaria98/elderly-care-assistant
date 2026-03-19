@@ -1300,5 +1300,5 @@ def guardian_latest_sos():
         conn.close()
 
         return render_template('guardian_latest_sos.html', alert=latest)    
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)

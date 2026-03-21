@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+
+{% block content %}
+
+<div class="mood-container">
+
+<h2 class="title">Guardian Mood Dashboard</h2>
+<p class="subtitle">Monitor emotional wellbeing of your elders</p>
+
+<div class="card-grid">
+
+{% for elder in mood_data %}
+
+<div class="mood-card">
+
+<h3>{{ elder.name }} ({{ elder.age }} yrs)</h3>
+
+{% if elder.latest %}
+
+<div class="mood-display">
+
+<div class="emoji">{{ elder.emoji }}</div>
+
+<div class="mood-details">
+<div class="mood-name">{{ elder.latest.mood }}</div>
+<div class="date">Recorded on {{ elder.latest.date }}</div>
+</div>
+
+</div>
+
+<div class="advice">
+💡 {{ elder.advice }}
+</div>
+
+{% if elder.alert %}
+<div class="alert">
+⚠️ Mood has been low recently. Check on them.
+</div>
+{% endif %}
+
+{% else %}
+
+<p class="no-data">No mood records yet</p>
+
+{% endif %}
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+
+<style>
+
+.mood-container{
+max-width:1100px;
+margin:auto;
+padding:30px;
+}
+
+.title{
+text-align:center;
+margin-bottom:5px;
+}
+
+.subtitle{
+text-align:center;
+color:#666;
+margin-bottom:35px;
+}
+
+.card-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:25px;
+}
+
+.mood-card{
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
+transition:0.3s;
+}
+
+.mood-card:hover{
+transform:translateY(-5px);
+}
+
+.mood-display{
+display:flex;
+align-items:center;
+gap:20px;
+margin-top:15px;
+}
+
+.emoji{
+font-size:45px;
+}
+
+.mood-name{
+font-size:22px;
+font-weight:600;
+}
+
+.date{
+font-size:14px;
+color:#777;
+}
+
+.advice{
+margin-top:15px;
+background:#eef4ff;
+padding:10px;
+border-radius:6px;
+}
+
+.alert{
+margin-top:12px;
+background:#ffe4e6;
+color:#b91c1c;
+padding:10px;
+border-radius:6px;
+font-weight:600;
+}
+
+.no-data{
+color:#777;
+margin-top:10px;
+}
+
+</style>
+
+{% endblock %}

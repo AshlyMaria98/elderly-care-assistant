@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-wrapper">
+
+        <div class="dashboard-heading">
+            <h2>Health Data</h2>
+            <p>Manage your health records</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h3>Add Health Record</h3>
+                <a href="{{ url_for('add_health') }}">
+                    <button class="btn-small">Go</button>
+                </a>
+            </div>
+            <div class="card">
+                <h3>View Health Records</h3>
+                <a href="{{ url_for('view_health') }}">
+                    <button class="btn-small">Go</button>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

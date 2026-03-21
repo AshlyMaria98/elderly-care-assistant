@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block body_class %}dashboard-mode {% endblock %}
+
+{% block content %}
+<a href="{{ url_for('sos') }}" class="back1-btn">⬅ </a>
+
+<div class="content-wrapper">
+    <div class="content-box">
+
+        <h2 style="text-align:center; margin-bottom:20px;">
+            🚨 SOS Alert History
+        </h2>
+
+        <table class="table table-bordered sos-table"></tableclass>
+            <thead>
+                <tr>
+                    
+                    <th>Date & Time</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+<tbody>
+    {% for alert in alerts %}
+    <tr>
+        
+        <td>{{ alert.date_time }}</td>
+        <td>{{ alert.message }}</td>
+
+        <!-- ✅ STATUS -->
+        <td>
+            {% if alert.status == 'pending' %}
+                <span style="color:red; font-weight:bold;">Pending</span>
+            {% else %}
+                <span style="color:green; font-weight:bold;">Resolved</span>
+            {% endif %}
+        </td>
+
+        <!-- ✅ ACTION -->
+      <td>
+    {% if alert.status == 'pending' %}
+        {% if session.get('role') == 'guardian' %}
+            <a href="/resolve_sos/{{ alert.id }}" style="color:blue;">
+                Mark Resolved
+            </a>
+        {% else %}
+            <span style="color:gray;">Waiting for guardian</span>
+        {% endif %}
+    {% else %}
+        ✔
+        <br>
+        <a href="{{ url_for('delete_alert', id=alert.id) }}"
+           onclick="return confirm('Delete this alert?')"
+           style="color:red;">
+           Delete
+        </a>
+    {% endif %}
+</td>
+    </tr>
+    {% endfor %}
+</tbody>
+        </table>
+
+    </div>
+</div>
+{% endblock %}

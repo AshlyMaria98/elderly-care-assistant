@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+
+{% block content %}
+
+<div class="mood-container">
+
+  <h2 class="title">My Mood History</h2>
+  <p class="subtitle">Track your moods over the last 6 entries</p>
+
+  {% if mood_data %}
+  <table class="mood-table">
+    <thead>
+      <tr>
+        <th>Mood</th>
+        <th>Date</th>
+        <th>Suggestion</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in mood_data %}
+      <tr class="mood-{{ m.mood|lower }}">
+        <td>
+          {% if m.mood.lower() == "happy" %}
+            😊
+          {% elif m.mood.lower() == "sad" %}
+            😢
+          {% elif m.mood.lower() == "angry" %}
+            😠
+          {% elif m.mood.lower() == "stressed" %}
+            😣
+          {% elif m.mood.lower() == "lonely" %}
+            😔
+          {% elif m.mood.lower() == "calm" %}
+            😌
+          {% else %}
+            🙂
+          {% endif %}
+          {{ m.mood }}
+        </td>
+        <td>{{ m.date }}</td>
+        <td>{{ m.suggestion }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p style="text-align:center; margin-top:30px; font-size:18px;">No mood records yet.</p>
+  {% endif %}
+
+</div>
+
+<style>
+.mood-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 30px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+.subtitle {
+  text-align: center;
+  color: #555;
+  margin-bottom: 25px;
+  font-size: 16px;
+}
+
+.mood-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.mood-table th, .mood-table td {
+  padding: 15px;
+  text-align: center;
+}
+
+.mood-table th {
+  background-color: #2980b9;
+  color: white;
+  font-size: 16px;
+}
+
+.mood-table tr {
+  background-color: #fefefe;
+  transition: transform 0.2s;
+}
+
+.mood-table tr:nth-child(even) {
+  background-color: #f3f6fb;
+}
+
+.mood-table tr:hover {
+  transform: scale(1.02);
+  background-color: #d6eaf8;
+}
+
+.mood-happy {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.mood-sad {
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.mood-angry {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.mood-stressed {
+  color: #d35400;
+  font-weight: 600;
+}
+
+.mood-lonely {
+  color: #8e44ad;
+  font-weight: 600;
+}
+
+.mood-calm {
+  color: #2980b9;
+  font-weight: 600;
+}
+
+.mood-table td {
+  font-size: 15px;
+}
+
+</style>
+
+{% endblock %}

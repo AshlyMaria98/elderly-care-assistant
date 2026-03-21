@@ -6,6 +6,16 @@ from datetime import date
 app = Flask(__name__)
 app.secret_key = "secret_key"
 
+# ---------------- TEMPLATE FILTERS ----------------
+@app.template_filter('datetimeformat')
+def datetimeformat(value, format='%B %d, %Y'):
+    """Format date strings like '2026-03-08' → 'March 08, 2026'"""
+    try:
+        dt = datetime.strptime(value, '%Y-%m-%d')
+        return dt.strftime(format)
+    except:
+        return value
+
 
 # ---------------- DATABASE ----------------
 def get_db_connection():
@@ -65,8 +75,44 @@ def create_tables():
             FOREIGN KEY (elder_id) REFERENCES users(id)
         )
     """)
+    #====================MOD3 DB STARTS========================
+    # ---------------- HEALTH RECORDS TABLE ----------------
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS health_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            elder_id INTEGER,
+            bp TEXT,
+            sugar TEXT,
+            pulse TEXT,
+            weight REAL,
+            height REAL,
+            bmi REAL,
+            date TEXT,
+            FOREIGN KEY (elder_id) REFERENCES users(id)
+        )
+    """)
 
-
+# ---------------- MOOD LOGS TABLE ----------------
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS mood_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            elder_id INTEGER,
+            mood TEXT,
+            date TEXT,
+            FOREIGN KEY (elder_id) REFERENCES users(id)
+        )
+    """)
+# ---------------- SOS ALERTS TABLE ----------------
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS sos_alerts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            elder_id INTEGER,
+            message TEXT,
+            date_time TEXT,
+            status TEXT DEFAULT 'pending',
+            FOREIGN KEY (elder_id) REFERENCES users(id)
+        )
+    """)
     conn.commit()
     conn.close()
 
@@ -210,6 +256,242 @@ def view_elders():
 
     return render_template('guardian_users.html', elders=elders)
 
+# ---------------- GUARDIAN VIEW HEALTH ----------------
+@app.route('/guardian_health')
+def guardian_health():
+
+    if 'user_id' not in session or session['role'] != 'guardian':
+        return redirect(url_for('login'))
+
+    guardian_id = session['user_id']
+    conn = get_db_connection()
+
+    # Get all elders linked to guardian
+    elders = conn.execute("""
+        SELECT id, fullname, age
+        FROM users
+        WHERE guardian_id = ?
+    """, (guardian_id,)).fetchall()
+
+    health_data = []
+    for elder in elders:
+        elder_id = elder['id']
+
+        # Latest health entry
+        latest = conn.execute("""
+            SELECT bp, sugar, pulse, bmi, date
+            FROM health_records
+            WHERE elder_id = ?
+            ORDER BY date DESC
+            LIMIT 1
+        """, (elder_id,)).fetchone()
+
+        # All BP records for graph
+        records = conn.execute("""
+            SELECT bp, sugar, pulse, date
+            FROM health_records
+            WHERE elder_id = ?
+            ORDER BY date
+        """, (elder_id,)).fetchall()
+
+        bp_list = []
+        sugar_list = []
+        pulse_list = []
+        dates = []
+
+        for r in records:
+            try:
+                if r['bp'] and '/' in r['bp']:
+                    bp_val = int(r['bp'].split('/')[0])
+                elif r['bp']:
+                    bp_val = int(r['bp'])
+                else:
+                    bp_val = None
+                bp_list.append(bp_val)
+            except:
+                bp_list.append(None)
+
+            try:
+                sugar_list.append(int(r['sugar']) if r['sugar'] else None)
+            except:
+                sugar_list.append(None)
+
+            try:
+                pulse_list.append(int(r['pulse']) if r['pulse'] else None)
+            except:
+                pulse_list.append(None)
+
+            dates.append(r['date'])
+
+        health_data.append({
+            "name": elder['fullname'],
+            "age": elder['age'],
+            "latest": latest,
+            "bp_list": bp_list,
+            "sugar_list": sugar_list,
+            "pulse_list": pulse_list,
+            "dates": dates,
+            "id": elder_id
+        })
+
+
+    conn.close()
+
+    return render_template("guardian_health.html", health_data=health_data)
+
+# ---------------- GUARDIAN VIEW ELDER HEALTH HISTORY ----------------
+@app.route('/guardian_health_history/<int:elder_id>')
+def guardian_health_history(elder_id):
+
+    if 'user_id' not in session or session['role'] != 'guardian':
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+
+    elder = conn.execute(
+        "SELECT fullname, age FROM users WHERE id=?",
+        (elder_id,)
+    ).fetchone()
+
+    records = conn.execute(
+        "SELECT * FROM health_records WHERE elder_id=? ORDER BY date DESC",
+        (elder_id,)
+    ).fetchall()
+
+    # Lists for chart
+    bp_list = []
+    sugar_list = []
+    pulse_list = []
+    dates = []
+    insights = []
+
+    for r in records:
+
+        # BP
+        try:
+            if r['bp'] and '/' in r['bp']:
+                bp_val = int(r['bp'].split('/')[0])
+            else:
+                bp_val = int(r['bp'])
+        except:
+            bp_val = None
+        bp_list.append(bp_val)
+
+        # Sugar
+        try:
+            sugar_val = int(r['sugar']) if r['sugar'] else None
+        except:
+            sugar_val = None
+        sugar_list.append(sugar_val)
+
+        # Pulse
+        try:
+            pulse_val = int(r['pulse']) if r['pulse'] else None
+        except:
+            pulse_val = None
+        pulse_list.append(pulse_val)
+
+        # Date
+        dates.append(r['date'])
+
+        # Insights
+        msg = []
+        if bp_val and bp_val > 140:
+            msg.append("High BP")
+        if sugar_val and sugar_val > 150:
+            msg.append("High sugar")
+        if r['bmi'] and (r['bmi'] > 25 or r['bmi'] < 18.5):
+            msg.append("BMI abnormal")
+
+        insights.append(msg)
+
+    conn.close()
+
+    return render_template(
+        "guardian_health_history.html",
+        elder=elder,
+        records=records,
+        insights=insights,
+        bp_list=bp_list,
+        sugar_list=sugar_list,
+        pulse_list=pulse_list,
+        dates=dates,
+        zip=zip
+    )
+# ---------------- GUARDIAN DASHBOARD: LATEST MOODS ----------------
+@app.route('/guardian_moods')
+def guardian_latest_moods():
+    if 'user_id' not in session or session['role'] != 'guardian':
+        return redirect(url_for('login'))
+
+    guardian_id = session['user_id']
+    conn = get_db_connection()
+
+    # Get all elders linked to guardian
+    elders = conn.execute("""
+        SELECT id, fullname, age
+        FROM users
+        WHERE guardian_id = ?
+    """, (guardian_id,)).fetchall()
+
+    mood_data = []
+
+    for elder in elders:
+        elder_id = elder['id']
+
+        # Get last 3 moods
+        recent_moods = conn.execute("""
+            SELECT mood, date
+            FROM mood_logs
+            WHERE elder_id = ?
+            ORDER BY date DESC
+            LIMIT 3
+        """, (elder_id,)).fetchall()
+
+        if not recent_moods:
+            mood_data.append({
+                "name": elder['fullname'],
+                "age": elder['age'],
+                "latest": None,
+                "alert": False,
+                "suggestion": "No mood recorded yet."
+            })
+            continue
+
+        # Latest mood
+        latest = recent_moods[0]
+
+        # Count sad moods for alert
+        sad_count = sum(1 for m in recent_moods if m['mood'].lower() == "sad")
+
+        # Generate suggestion based on latest mood
+        mood_val = latest['mood'].lower()
+        if mood_val == "sad":
+            suggestion = "Call or chat with a loved one, listen to music, or go for a gentle walk."
+        elif mood_val == "lonely":
+            suggestion = "Reach out to family or friends, or join a small social activity."
+        elif mood_val == "stressed":
+            suggestion = "Take a few deep breaths, stretch lightly, or enjoy a calming activity."
+        elif mood_val == "angry":
+            suggestion = "Step away for a moment, drink water, or take a short walk to calm down."
+        elif mood_val == "happy":
+            suggestion = "Keep enjoying activities that make you happy!"
+        elif mood_val == "calm":
+            suggestion = "Maintain your calm with relaxing activities like reading or light exercise."
+        else:
+            suggestion = "Stay hydrated and active, and connect with loved ones."
+
+        mood_data.append({
+            "name": elder['fullname'],
+            "age": elder['age'],
+            "latest": latest,
+            "alert": sad_count >= 2,  # True if sad 2 or more times in last 3
+            "suggestion": suggestion
+        })
+
+    conn.close()
+
+    return render_template("guardian_latest_moods.html", mood_data=mood_data)
 
 
 # ---------------- PROFILE ----------------
@@ -594,6 +876,429 @@ def logout():
     session.clear()
     return redirect(url_for('landing'))
 #___________________module 1 route ending__________________________
+# -------------------- MODULE 3: HEALTH --------------------
+@app.route('/add_health', methods=['GET', 'POST'])
+def add_health():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
 
+    if request.method == 'POST':
+        elder_id = session['user_id']
+        bp = request.form['bp'].strip()      # expects format "120/80"
+        sugar = request.form['sugar'].strip()
+        pulse = request.form['pulse'].strip()
+        weight = float(request.form['weight'])
+        height_cm = float(request.form['height'])
+
+        # Convert height to meters for BMI
+        height_m = height_cm / 100
+        bmi = round(weight / (height_m ** 2), 2)
+        today = date.today().isoformat()
+
+        conn = get_db_connection()
+        conn.execute("""
+            INSERT INTO health_records (elder_id, bp, sugar, pulse, weight, height, bmi, date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (elder_id, bp, sugar, pulse, weight, height_cm, bmi, today))
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for('view_health'))
+
+    return render_template('health.html')
+
+#-------------view health---------------------------------------
+@app.route('/view_health')
+def view_health():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    elder_id = session['user_id']
+    conn = get_db_connection()
+    records = conn.execute(
+        "SELECT * FROM health_records WHERE elder_id=? ORDER BY date DESC",
+        (elder_id,)
+    ).fetchall()
+    conn.close()
+
+    # Convert records to list
+    records = list(records)
+
+    insights = []
+    bp_list = []  # single BP number for chart
+
+    for r in records:
+        msg = []
+
+        # BP
+        try:
+            bp_val = int(r['bp'])
+            bp_list.append(bp_val)
+            if bp_val > 140:
+                msg.append("High BP warning!")
+        except:
+            bp_list.append(None)  # if BP missing or invalid
+
+        # Sugar
+        try:
+            if r['sugar'] and int(r['sugar']) > 150:
+                msg.append("High sugar level!")
+        except:
+            pass
+
+        # BMI
+        if r['bmi'] > 25:
+            msg.append("BMI high – exercise recommended!")
+        elif r['bmi'] < 18.5:
+            msg.append("BMI low – consider nutrition!")
+
+        insights.append(msg)
+
+    return render_template(
+        'view_health.html',
+        records=records,
+        insights=insights,
+        bp_list=bp_list,
+        zip=zip
+    )
+# -------------------- DELETE HEALTH RECORD --------------------
+@app.route('/delete_health/<int:record_id>')
+def delete_health(record_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    elder_id = session['user_id']
+
+    conn = get_db_connection()
+    # Ensure the record belongs to the logged-in user
+    record = conn.execute(
+        "SELECT * FROM health_records WHERE id=? AND elder_id=?",
+        (record_id, elder_id)
+    ).fetchone()
+
+    if record:
+        conn.execute("DELETE FROM health_records WHERE id=?", (record_id,))
+        conn.commit()
+
+    conn.close()
+    return redirect(url_for('view_health'))
+
+# ---------------- HEALTH HUB ----------------
+@app.route('/healthhub')
+def health_hub():
+    if 'user_id' not in session or session['role'] != 'elder':
+        return redirect(url_for('login'))
+    return render_template('healthhub.html')
+
+
+# ---------------- MOOD OPTIONS (INTERMEDIATE PAGE) ----------------
+@app.route('/mood_options')
+def mood_options():
+    # Only elders can access
+    if 'user_id' not in session or session['role'] != 'elder':
+        return redirect(url_for('login'))
+
+    return render_template('mood_options.html')
+
+
+# ---------------- MOOD HUB ----------------
+@app.route('/moodhub', methods=['GET', 'POST'])
+def mood_hub():
+
+    if 'user_id' not in session or session['role'] != 'elder':
+        return redirect(url_for('login'))
+
+    suggestion = None
+    alert_message = None
+
+    if request.method == 'POST':
+
+        elder_id = session['user_id']
+        mood = request.form.get('mood', '').lower()
+        notes = request.form.get('notes', '').lower()
+        today = date.today().isoformat()
+
+        # -------- SAVE MOOD --------
+        conn = get_db_connection()
+
+        conn.execute("""
+        INSERT INTO mood_logs (elder_id, mood, date)
+        VALUES (?, ?, ?)
+        """, (elder_id, mood, today))
+
+        conn.commit()
+
+        # -------- HEALTH CHECK FROM NOTES --------
+        if "high bp" in notes or "bp high" in notes:
+
+            suggestion = (
+                "Your blood pressure may be high. Sit down and rest for a few minutes. "
+                "Avoid salty foods today and drink some water. If you feel dizziness "
+                "or headache, consider checking your BP or contacting a doctor."
+            )
+
+        elif "low bp" in notes:
+
+            suggestion = (
+                "Your blood pressure may be low. Sit down and rest and drink some water. "
+                "Having a light snack with a little salt may help. If dizziness "
+                "continues, inform a caregiver."
+            )
+
+        elif "high sugar" in notes or "sugar high" in notes:
+
+            suggestion = (
+                "Your blood sugar may be high. Try drinking water and avoid sugary "
+                "foods for now. If possible, take a gentle walk and monitor your sugar level."
+            )
+
+        elif "low sugar" in notes or "sugar low" in notes:
+
+            suggestion = (
+                "Low blood sugar can cause weakness or dizziness. Consider eating "
+                "something sweet like fruit juice or a biscuit and rest for a few minutes."
+            )
+
+        # -------- MOOD SUGGESTIONS --------
+        else:
+
+            if mood == "sad":
+                suggestion = (
+                    "You may be feeling low today. Try calling a family member or friend "
+                    "for a short conversation. Listening to your favorite music or taking "
+                    "a gentle walk outside can also improve your mood."
+                )
+
+            elif mood == "lonely":
+                suggestion = (
+                    "Feeling lonely can happen sometimes. Try reaching out to someone "
+                    "you trust or spend time with neighbors or family."
+                )
+
+            elif mood == "stressed":
+                suggestion = (
+                    "Take a few minutes to relax. Sit comfortably and take slow deep "
+                    "breaths. Drinking water and stretching lightly may help."
+                )
+
+            elif mood == "angry":
+                suggestion = (
+                    "Pause for a moment and breathe slowly. Take a short walk or "
+                    "drink some water until you feel calmer."
+                )
+
+            elif mood == "happy":
+                suggestion = (
+                    "That's wonderful! Staying happy supports both mental and "
+                    "physical health. Consider sharing your happiness with loved ones."
+                )
+
+            elif mood == "calm":
+                suggestion = (
+                    "Feeling calm is great for wellbeing. Continue activities that "
+                    "bring peace like reading, prayer, or light exercise."
+                )
+
+            else:
+                suggestion = (
+                    "Thank you for sharing how you feel today. Remember to stay "
+                    "hydrated and stay connected with people around you."
+                )
+
+        conn.close()
+
+    return render_template("moodhub.html", suggestion=suggestion, alert=alert_message)
+# ---------------- VIEW MOODS ----------------
+@app.route('/viewmoods')
+def view_moods():
+    if 'user_id' not in session or session['role'] != 'elder':
+        return redirect(url_for('login'))
+
+    elder_id = session['user_id']
+    conn = get_db_connection()
+    moods = conn.execute("""
+        SELECT mood, date
+        FROM mood_logs
+        WHERE elder_id = ?
+        ORDER BY date DESC
+        LIMIT 6
+    """, (elder_id,)).fetchall()
+    conn.close()
+
+    mood_data = []
+    for r in moods:
+        mood_val = r['mood']
+        date_val = r['date']
+
+        if mood_val.lower() == "sad":
+            suggestion = "Call or chat with a loved one, listen to music, or go for a gentle walk."
+        elif mood_val.lower() == "lonely":
+            suggestion = "Reach out to family or friends, or join a small social activity."
+        elif mood_val.lower() == "stressed":
+            suggestion = "Take a few deep breaths, stretch lightly, or enjoy a calming activity."
+        elif mood_val.lower() == "angry":
+            suggestion = "Step away for a moment, drink water, or take a short walk to calm down."
+        elif mood_val.lower() == "happy":
+            suggestion = "Keep enjoying activities that make you happy!"
+        elif mood_val.lower() == "calm":
+            suggestion = "Maintain your calm with relaxing activities like reading or light exercise."
+        else:
+            suggestion = "Stay hydrated and active, and connect with loved ones."
+
+        mood_data.append({
+            "date": date_val,
+            "mood": mood_val,
+            "suggestion": suggestion
+        })
+
+    return render_template("view_mood_table.html", mood_data=mood_data)
+# ---------------- SOS PAGE (ELDER) ----------------
+@app.route('/sos')
+def sos():
+    if 'user_id' not in session or session['role'] != 'elder':
+        return redirect(url_for('login'))
+    return render_template('elder_sos.html')
+
+
+# ---------------- SEND SOS ----------------
+@app.route('/send_sos', methods=['POST'])
+def send_sos():
+    if 'user_id' not in session or session['role'] != 'elder':
+        return redirect(url_for('login'))
+
+    elder_id = session['user_id']
+    message = "Emergency alert triggered by elder"
+    date_time = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    conn = get_db_connection()
+    conn.execute("""
+        INSERT INTO sos_alerts (elder_id, message, date_time, status)
+        VALUES (?, ?, ?, 'pending')
+    """, (elder_id, message, date_time))
+    conn.commit()
+    conn.close()
+
+    return render_template('elder_sos.html', message="🚨 SOS Alert Sent Successfully!")
+
+
+# ---------------- SOS HISTORY (ELDER) ----------------
+@app.route('/sos_history')
+def sos_history():
+    if 'user_id' not in session or session['role'] != 'elder':
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    alerts = conn.execute("""
+        SELECT * FROM sos_alerts
+        WHERE elder_id = ?
+        ORDER BY date_time DESC
+    """, (session['user_id'],)).fetchall()
+    conn.close()
+
+    return render_template('sos_history.html', alerts=alerts)
+
+
+# ---------------- GUARDIAN VIEW SOS ----------------
+@app.route('/guardian_sos_alerts')
+def guardian_sos_alerts():
+    if 'user_id' not in session or session['role'] != 'guardian':
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+
+    alerts = conn.execute("""
+        SELECT s.*, u.fullname as elder_name
+        FROM sos_alerts s
+        JOIN users u ON s.elder_id = u.id
+        WHERE u.guardian_id = ?
+        ORDER BY s.date_time DESC
+    """, (session['user_id'],)).fetchall()
+
+    conn.close()
+
+    return render_template('guardian_sos_alerts.html', alerts=alerts)
+
+
+# ---------------- RESOLVE SOS ----------------
+@app.route('/resolve_sos/<int:id>')
+def resolve_sos(id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+
+    conn.execute("""
+        UPDATE sos_alerts
+        SET status = 'resolved'
+        WHERE id = ?
+    """, (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('guardian_sos_alerts'))
+# ---------------- DELETE SOS ALERT (NEW) ----------------
+@app.route('/delete_alert/<int:id>')
+def delete_alert(id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+
+    conn.execute("""
+        DELETE FROM sos_alerts
+        WHERE id = ?
+    """, (id,))
+
+    conn.commit()
+    conn.close()
+
+    # ✅ FIX: redirect based on role
+    if session['role'] == 'elder':
+        return redirect(url_for('sos_history'))
+    else:
+        return redirect(url_for('guardian_sos_alerts'))
+@app.route('/check_new_sos')
+def check_new_sos():
+    if 'user_id' not in session or session['role'] != 'guardian':
+        return {"new": False}
+
+    conn = get_db_connection()
+
+    alert = conn.execute("""
+        SELECT s.id, s.date_time
+        FROM sos_alerts s
+        JOIN users u ON s.elder_id = u.id
+        WHERE u.guardian_id = ?
+        AND s.status = 'pending'
+        ORDER BY s.date_time DESC
+        LIMIT 1
+    """, (session['user_id'],)).fetchone()
+
+    conn.close()
+
+    if alert:
+        return {"new": True, "id": alert["id"], "time": alert["date_time"]}
+    else:
+        return {"new": False}
+@app.route('/guardian_latest_sos')
+def guardian_latest_sos():
+        if 'user_id' not in session or session['role'] != 'guardian':
+            return redirect(url_for('login'))
+
+        conn = get_db_connection()
+
+        latest = conn.execute("""
+             SELECT s.*, u.fullname as elder_name
+            FROM sos_alerts s
+             JOIN users u ON s.elder_id = u.id
+            WHERE u.guardian_id = ?
+            ORDER BY s.date_time DESC
+            LIMIT 1
+         """, (session['user_id'],)).fetchone()
+
+        conn.close()
+
+        return render_template('guardian_latest_sos.html', alert=latest)    
 if __name__ == '__main__':
     app.run(debug=True)

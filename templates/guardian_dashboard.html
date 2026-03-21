@@ -104,6 +104,7 @@
         </div>
 
         <div class="dashboard">
+
             <div class="card">
                 <h3>View My Elders</h3>
                 <a href="{{ url_for('view_elders') }}" class="btn-small">Go</a>
@@ -111,15 +112,63 @@
 
             <div class="card">
                 <h3>Reminders</h3>
-                <a href="{{ url_for('view_reminders') }}" class="btn-small">Go</a>
+                <a href="{{ url_for('view_reminders') }}">
+                    <button class="btn-small">Go</button>
+                </a>
             </div>
 
-            <div class="card alert-card">
-                <h3 style="color: #c0392b;">Emergency Alerts</h3>
-                <a href="#" class="btn-small alert-btn">Go</a>
+            <div class="card">
+                <h3>Emergency Alerts</h3>
+                <a href="{{ url_for('guardian_latest_sos') }}">
+                    <button class="btn-small">Go</button>
+                </a>
+               
             </div>
+
+            <!-- NEW CARD -->
+            <div class="card">
+                <h3>Latest Health Records</h3>
+                <a href="{{ url_for('guardian_health') }}">
+                    <button class="btn-small">Go</button>
+                </a>
+            </div>
+
+            <!-- NEW CARD -->
+            <div class="card">
+                <h3>Latest Mood Status</h3>
+                <a href="{{ url_for('guardian_latest_moods') }}">
+                    <button class="btn-small">Go</button>
+                </a>
+            </div>
+
         </div>
 
     </div>
 </div>
-{% endblock %}
+<audio id="sosSound" src="{{ url_for('static', filename='alert.mp3') }}"></audio>
+
+<script>
+let lastSOS = null;
+let audio = document.getElementById("sosSound");
+
+function checkSOS() {
+    fetch('/check_new_sos')
+    .then(res => res.json())
+    .then(data => {
+        if (data.new && data.id !== lastSOS) {
+            lastSOS = data.id;
+
+            // 🔊 Play ONLY when SOS comes
+            audio.currentTime = 0;
+            audio.play();
+
+            alert("🚨 SOS ALERT RECEIVED!");
+        }
+    });
+}
+
+// Check every 5 sec
+setInterval(checkSOS, 5000);
+</script>
+
+{% endblock %} 

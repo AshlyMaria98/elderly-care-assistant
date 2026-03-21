@@ -98,6 +98,19 @@
 <div class="dashboard-container">
     <div class="dashboard-wrapper">
 
+        <!-- Back to Login Button -->
+        <div style="margin-bottom:15px;">
+            <a href="{{ url_for('login') }}" 
+               style="text-decoration:none;
+               background:#eef6f6;
+               padding:8px 14px;
+               border-radius:8px;
+               color:#4d7c7c;
+               font-weight:500;">
+               ← Back
+            </a>
+        </div>
+
         <div class="dashboard-heading">
             <h2>Welcome to Your Dashboard</h2>
             <p>Manage your health and safety with ease</p>
@@ -105,28 +118,46 @@
 
         <div class="dashboard">
 
+            <!-- BMI -->
             <div class="card">
                 <h3>Check BMI</h3>
                 <a href="{{ url_for('bmi') }}" class="btn-small">Go</a>
             </div>
 
+            <!-- Medicine Reminder -->
             <div class="card">
                 <h3>Medicine Reminder</h3>
-                <a href="{{ url_for('view_reminders') }}" class="btn-small">Go</a>
+                <a href="{{ url_for('view_reminders') }}">
+                    <button class="btn-small">Go</button>
+                </a>
             </div>
 
+            <!-- Health Data Hub -->
             <div class="card">
                 <h3>Health Data</h3>
-                <a href="#" class="btn-small">Go</a>
+                <a href="{{ url_for('health_hub') }}">
+                    <button class="btn-small">Go</button>
+                </a>
             </div>
 
-            <div class="card sos-card">
-                <h3 style="color: #c0392b;">SOS Emergency</h3>
-                <a href="#" class="btn-small sos-btn">Go</a>
+            <!-- Mood Data Hub -->
+            <div class="card">
+                <h3>Mood Data</h3>
+                <a href="{{ url_for('mood_options') }}">
+                    <button class="btn-small">Go</button>
+                </a>
+            </div>
+
+           <!-- SOS Emergency -->
+           <div class="card">
+                <h3>SOS Emergency</h3>
+                <a href="{{ url_for('sos') }}">
+                    <button class="btn-small">Go</button>
+                 </a>
             </div>
 
         </div>
 
     </div>
 </div>
-{% endblock %}
+{% endblock %} 

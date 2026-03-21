@@ -186,3 +186,110 @@ th, td {
         grid-template-columns: 1fr;
     }
 }
+/* ===== MODULE 4 SUPPORT (MATCH OLD THEME) ===== */
+
+.sos-container, .sos-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+/* Use your OLD glass style */
+.sos-card {
+    width: 420px;
+    padding: 40px;
+    border-radius: 20px;
+
+    background: #ffffff;
+
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+/* Keep her layout but adjust colors */
+.sos-title {
+    font-size: 26px;
+    font-weight: bold;
+    color: #111010;
+}
+
+.sos-subtitle {
+    color: #000000;
+    margin-bottom: 20px;
+}
+
+/* Button stays same feel */
+.sos-button {
+    background: #ef4444;
+    color: white;
+    font-size: 20px;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.sos-button:hover {
+    background: #dc2626;
+}
+.sos-history-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.sos-history-link a {
+    color: #f4f5f7;
+    text-decoration: none;
+    font-weight: 500;
+}
+.sos-page-title {
+    text-align: center;
+    color: white; /* optional, looks better on dark bg */
+    margin-top: 30px;
+}
+.back1-btn {
+    font-size: 28px;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+
+    display: inline-block;
+
+    
+    background: rgba(255, 255, 255, 0.15); /* transparent white */
+    padding: 8px 14px;
+    border-radius: 10px;
+    backdrop-filter: blur(6px);
+
+    transition: 0.3s ease;
+}
+.back1-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+.sos-table th {
+    background: #102655;
+    color: white;
+    font-weight: 600;
+}
+.sos-status.resolved {
+    display: inline-block;
+    background: #22c55e;        /* green */
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;        /* rounded rectangle */
+    font-weight: 500;
+    font-size: 14px;
+}
+.bmi-page .glass-card {
+    background: #ffffff;       /* make card white */
+    backdrop-filter: none;     /* remove blur */
+}
+.bmi-page input {
+    background: #f9fafb;       /* light grey */
+    border: 1px solid #ccc;
+    color: #111;
+}
+.bmi-page .glass-card {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}

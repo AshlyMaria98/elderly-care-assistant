@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block body_class %}dashboard-mode{% endblock %}
+{% block content %}
+<a href="{{ url_for('guardian_latest_sos') }}" class="back1-btn">⬅ </a>
+<div class="content-wrapper">
+    <div class="content-box">
+<h2 style="text-align:center; margin-bottom:20px;">
+    🚨 SOS Alerts from Elders
+</h2>
+
+<table class="table table-bordered sos-table" style="width:100%; border-collapse: collapse;">    
+    <thead>
+        <tr>
+            <th>Elder</th>
+            <th>Time</th>
+            <th>Message</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for alert in alerts %}
+        <tr>
+            <td>{{ alert.elder_name }}</td>
+            <td>{{ alert.date_time }}</td>
+            <td>{{ alert.message }}</td>
+
+<!-- ✅ STATUS COLUMN -->
+<td>
+    {% if alert.status|lower == 'pending' %}
+        <span class="badge bg-danger">Pending</span>
+    {% else %}
+        <span class="badge bg-success">Resolved</span>
+    {% endif %}
+</td>
+            <!-- ✅ ACTION COLUMN -->
+            <td>
+                {% if alert.status|lower == 'pending' %}
+                    <a href="/resolve_sos/{{ alert.id }}" class="btn btn-success btn-sm">
+                        Mark Resolved
+                    </a>
+                {% else %}
+                    <span class="badge bg-success">✔ Resolved</span>
+                    <br><br>
+                    <a href="{{ url_for('delete_alert', id=alert.id) }}"
+                       onclick="return confirm('Are you sure to delete this alert?')"
+                       class="btn btn-danger btn-sm">
+                       Delete
+                    </a>
+                {% endif %}
+            </td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+
+    </div>
+</div>
+<script>
+window.onload = function() {
+    let audio = window.opener ? window.opener.document.getElementById("sosSound") : null;
+
+    if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+    }
+};
+</script>
+
+{% endblock %}

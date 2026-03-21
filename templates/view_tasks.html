@@ -1,133 +1,116 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>View Tasks</title>
-    <style>
-        body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', sans-serif;
-    min-height: 100vh;
+{% extends "base.html" %}
 
-    background: linear-gradient(135deg, #ffecd2, #fcb69f);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+{% block body_class %}view-tasks-page{% endblock %}
+
+{% block content %}
+<style>
     .container {
-    width: 650px;
-}
+        width: 90%;
+        max-width: 1000px;
+        margin: 40px auto;
+    }
+
     h2 {
-    text-align: center;
-    color: #1e3d4a;
-    margin-bottom: 25px;
-    font-weight: 600;
-    letter-spacing: 1px;
-}
+        text-align: center;
+        color: #1e3d4a;
+        margin-bottom: 25px;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
 
-     .card {
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    /* Grid Layout for Task Cards */
+    .task-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
 
-    background: rgba(255, 255, 255, 0.35);
-    border-radius: 20px;
-    padding: 22px;
-    margin: 15px 0;
+    .card {
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        background: rgba(255, 255, 255, 0.35);
+        border-radius: 20px;
+        padding: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        color: #1e3d4a;
+        transition: 0.3s ease;
+    }
 
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-
-    color: #1e3d4a;
-    transition: 0.3s ease;
-}
     .card:hover {
-    transform: translateY(-4px);
-}
+        transform: translateY(-4px);
+    }
 
-        .completed {
-            color: rgb(29, 245, 29);
-            font-weight: bold;
-        }
+    .completed {
+        color: #27ae60;
+        font-weight: bold;
+    }
 
-        .pending {
-            color: orange;
-            font-weight: bold;
-        }
-        .complete-btn {
-        background-color: #4CAF50;   /* Green */
+    .pending {
+        color: #d35400;
+        font-weight: bold;
+    }
+
+    .complete-btn {
+        background-color: #4CAF50;
         color: white;
         border: none;
-        padding: 8px 12px;
-        border-radius: 6px;
+        padding: 10px 12px;
+        border-radius: 8px;
         cursor: pointer;
-        }
+        width: 100%;
+        margin-top: 15px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
 
-    .complete-btn:hover {   
+    .complete-btn:hover {
         background-color: #146918;
-}
-.glass-btn {
-    display: inline-block;
-    padding: 10px 18px;
-    border-radius: 12px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
+    }
 
-    backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.4);
-    color: #523737;
+    .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 30px;
+        text-decoration: none;
+        color: #1e3d4a;
+        font-weight: bold;
+    }
+</style>
 
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    transition: 0.3s;
-    font-weight: 500;
-}
-
-.glass-btn:hover {
-    background: rgba(255, 255, 255, 0.6);
-}
-
-
-    </style>
-</head>
-<body>
 <div class="container">
-<h2>My Daily Tasks</h2>
+    <h2>My Daily Tasks</h2>
 
-{% for t in tasks %}
-    <div class="card">
-        {% if session['role'] == 'guardian' %}
-    <strong>Elder:</strong> {{ t['elder_name'] }} <br>
-        {% endif %}<br>
+    <div class="task-container">
+        {% for t in tasks %}
+            <div class="card">
+                {% if session['role'] == 'guardian' %}
+                    <small><strong>Elder:</strong> {{ t['elder_name'] }}</small><br><br>
+                {% endif %}
 
-        <strong>{{ t['task_name'] }}</strong><br><br>
-        Date: {{ t['date'] }}<br>
-            <br>
-        {% if t['completed'] == 1 %}
-            <span class="completed">Completed</span>
+                <strong style="font-size: 1.1em;">{{ t['task_name'] }}</strong><br>
+                <p>Date: {{ t['date'] }}</p>
+                
+                {% if t['completed'] == 1 %}
+                    <span class="completed">✓ Completed</span>
+                {% else %}
+                    <span class="pending">⌛ Pending</span>
+                    <form action="{{ url_for('complete_task', id=t['id']) }}" method="get">
+                        <button type="submit" class="complete-btn">
+                            Mark Completed
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
         {% else %}
-            <span class="pending">Pending</span><br><br>
-
-    <form action="{{ url_for('complete_task', id=t['id']) }}" method="get">
-    <button type="submit" class="complete-btn">
-        Mark Completed
-    </button>
-</form>
-
-
-{% endif %}
+            <div style="text-align: center; grid-column: 1 / -1;">
+                <p>No tasks found.</p>
+            </div>
+        {% endfor %}
     </div>
-{% else %}
-    <p>No tasks found.</p>
-{% endfor %}
 
-{% if session['role'] == 'elder' %}
-    <a href="{{ url_for('view_reminders') }}">
-{% else %}
-    <a href="{{ url_for('view_reminders') }}">
-{% endif %}
-    ← Back
-</a>
-
+    <a href="{{ url_for('view_reminders') }}" class="back-link">
+        ← Back
+    </a>
 </div>
-</body>
-</html>
+{% endblock %}

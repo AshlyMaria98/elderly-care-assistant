@@ -1,120 +1,99 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add Task</title>
-    <style>
-    body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', sans-serif;
-    min-height: 100vh;
+{% extends "base.html" %}
 
-    background: linear-gradient(135deg, #ffecd2, #fcb69f);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+{% block body_class %}task-page{% endblock %}
+
+{% block content %}
+<style>
+    /* Specific styles for this page */
     .container {
-    width: 650px;
-}
-    h2 {
-    text-align: center;
-    color: #1e3d4a;
-    margin-bottom: 25px;
-    font-weight: 600;
-    letter-spacing: 1px;
-}
+        width: 650px;
+        margin: 40px auto;
+    }
 
-.card {
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    .card {
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        background: rgba(255, 255, 255, 0.35);
+        border-radius: 20px;
+        padding: 22px;
+        margin: 15px 0;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        color: #1e3d4a;
+        transition: 0.3s ease;
+    }
 
-    background: rgba(255, 255, 255, 0.35);
-    border-radius: 20px;
-    padding: 22px;
-    margin: 15px 0;
-
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-
-    color: #1e3d4a;
-    transition: 0.3s ease;
-}
     .card:hover {
-    transform: translateY(-4px);
-}
-        input {
-            width: 100%;
-            padding: 8px;
-            margin: 8px 0;
-        }
+        transform: translateY(-4px);
+    }
 
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #a77137;
-            color: rgb(255, 255, 255);
-            border: none;
-            border-radius: 6px;
-        }
-    .glass-btn {
-    display: inline-block;
-    padding: 10px 18px;
-    border-radius: 12px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
+    input, select {
+        width: 100%;
+        padding: 8px;
+        margin: 8px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
 
-    backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.4);
-    color: #523737;
+    button {
+        width: 100%;
+        padding: 10px;
+        background: #a77137;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
 
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    transition: 0.3s;
-    font-weight: 500;
-}
+    button:hover {
+        background: #8e5e2e;
+    }
 
-.glass-btn:hover {
-    background: rgba(255, 255, 255, 0.6);
-}
+    h2 {
+        text-align: center;
+        color: #1e3d4a;
+        margin-bottom: 25px;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
 
-    </style>
-</head>
-<body>
+    .back-link {
+        display: block;
+        margin-top: 15px;
+        text-align: center;
+        text-decoration: none;
+        color: #1e3d4a;
+    }
+</style>
+
 <div class="container">
-<div class="card">
-    <h2>Add Daily Task</h2>
+    <div class="card">
+        <h2>Add Daily Task</h2>
 
-    <form method="POST">
-        {% if session['role'] == 'guardian' %}
-<label>Select Elder:</label>
-<select name="elder_id" required>
-    {% for elder in elders %}
-        <option value="{{ elder['id'] }}">
-            {{ elder['fullname'] }}
-        </option>
-    {% endfor %}
-</select>
-{% endif %}
+        <form method="POST">
+            {% if session['role'] == 'guardian' %}
+                <label>Select Elder:</label>
+                <select name="elder_id" required>
+                    {% for elder in elders %}
+                        <option value="{{ elder['id'] }}">
+                            {{ elder['fullname'] }}
+                        </option>
+                    {% endfor %}
+                </select>
+            {% endif %}
 
-        Task Name:
-        <input type="text" name="task_name" required>
+            <label>Task Name:</label>
+            <input type="text" name="task_name" required>
 
-        Date:
-        <input type="date" name="date" required>
+            <label>Date:</label>
+            <input type="date" name="date" required>
 
-        <button type="submit">Save Task</button>
-    </form>
+            <button type="submit">Save Task</button>
+        </form>
 
-    {% if session['role'] == 'elder' %}
-    <a href="{{ url_for('view_reminders') }}">
-{% else %}
-    <a href="{{ url_for('view_reminders') }}">
-{% endif %}
-    ← Back
-</a>
-
+        <a href="{{ url_for('view_reminders') }}" class="back-link">
+            ← Back
+        </a>
+    </div>
 </div>
-</div>
-</body>
-</html>
+{% endblock %}

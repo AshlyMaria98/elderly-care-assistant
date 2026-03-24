@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-
-{% block body_class %}view-reminders-page{% endblock %}
+{% block body_class %}dashboard-mode view-reminders-page{% endblock %}
 
 {% block content %}
 <style>
@@ -51,7 +50,7 @@
     .card {
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        background: rgba(255, 255, 255, 0.35);
+        background: white;
         border-radius: 20px;
         padding: 22px;
         border: 1px solid rgba(255, 255, 255, 0.5);
@@ -74,8 +73,8 @@
         margin: 10px 0;
     }
 
-    .pending { color: #d35400; }
-    .completed { color: #27ae60; }
+    .pending { color: #fa6b0c; }
+    .completed { color: #14ee6f; }
 
     .btn {
         display: inline-block;
@@ -100,61 +99,69 @@
         text-align: center;
         margin-top: 30px;
         text-decoration: none;
-        color: #1e3d4a;
+        color:white;
         font-weight: bold;
     }
 </style>
 
-<div class="container">
-    <h2>Medicine & Task Manager</h2>
+<div class="center-wrapper">
+    <div class="dashboard-wrapper">
 
-    <div class="menu">
-        <a href="{{ url_for('add_reminder') }}">Add Reminder</a>
-        <a href="{{ url_for('due_today') }}">Due Today</a>
-        <a href="{{ url_for('missed_reminders') }}">Missed Reminders</a>
-        <a href="{{ url_for('add_task') }}">Add Task</a>
-        <a href="{{ url_for('view_tasks') }}">View Tasks</a>
-    </div>
+        <h2 class="dashboard-heading">Medicine & Task Manager</h2>
 
-    <hr style="border: 0.5px solid rgba(255,255,255,0.3); margin-bottom: 30px;">
+        <div class="container">
 
-    <div class="reminder-container">
-        {% for r in reminders %}
-            <div class="card">
-                {% if session['role'] == 'guardian' %}
-                    <small><strong>Elder:</strong> {{ r['elder_name'] }}</small><br><br>
-                {% endif %}
-                
-                <h3>{{ r['title'] }}</h3>
-                <p><strong>Type:</strong> {{ r['type'] }}</p>
-                <p><strong>Date:</strong> {{ r['date'] }}</p>
-                <p><strong>Time:</strong> {{ r['time'] }}</p>
-
-                {% if r['notes'] %}
-                    <p><strong>Note:</strong> {{ r['notes'] }}</p>
-                {% endif %}
-
-                <p class="status {% if r['status'] == 'completed' %}completed{% else %}pending{% endif %}">
-                    Status: {{ r['status']|capitalize }}
-                </p>
-
-                {% if r['status'] == 'pending' %}
-                    <a class="btn" href="{{ url_for('complete_reminder', id=r['id']) }}">
-                        Mark Completed
-                    </a>
-                {% endif %}
+            <div class="menu">
+                <a href="{{ url_for('add_reminder') }}">Add Reminder</a>
+                <a href="{{ url_for('due_today') }}">Due Today</a>
+                <a href="{{ url_for('missed_reminders') }}">Missed Reminders</a>
+                <a href="{{ url_for('add_task') }}">Add Task</a>
+                <a href="{{ url_for('view_tasks') }}">View Tasks</a>
             </div>
-        {% else %}
-            <div style="text-align: center; grid-column: 1 / -1;">
-                <p>No reminders found.</p>
-            </div>
-        {% endfor %}
-    </div>
 
-    {% if session['role'] == 'elder' %}
-        <a class="back-link" href="{{ url_for('elder_dashboard') }}">← Back to Dashboard</a>
-    {% else %}
-        <a class="back-link" href="{{ url_for('guardian_dashboard') }}">← Back to Dashboard</a>
-    {% endif %}
+            <hr style="border: 0.5px solid rgba(255,255,255,0.3); margin-bottom: 30px;">
+
+            <div class="reminder-container">
+                {% for r in reminders %}
+                    <div class="card">
+                        {% if session['role'] == 'guardian' %}
+                            <small><strong>Elder:</strong> {{ r['elder_name'] }}</small><br><br>
+                        {% endif %}
+                        
+                        <h3>{{ r['title'] }}</h3>
+                        <p><strong>Type:</strong> {{ r['type'] }}</p>
+                        <p><strong>Date:</strong> {{ r['date'] }}</p>
+                        <p><strong>Time:</strong> {{ r['time'] }}</p>
+
+                        {% if r['notes'] %}
+                            <p><strong>Note:</strong> {{ r['notes'] }}</p>
+                        {% endif %}
+
+                        <p class="status {% if r['status'] == 'completed' %}completed{% else %}pending{% endif %}">
+                            Status: {{ r['status']|capitalize }}
+                        </p>
+
+                        {% if r['status'] == 'pending' %}
+                            <a class="btn" href="{{ url_for('complete_reminder', id=r['id']) }}">
+                                Mark Completed
+                            </a>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div style="text-align: center; grid-column: 1 / -1;">
+                        <p style="color:white;">No reminders found.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if session['role'] == 'elder' %}
+                <a class="back-link" href="{{ url_for('elder_dashboard') }}">← Back to Dashboard</a>
+            {% else %}
+                <a class="back-link" href="{{ url_for('guardian_dashboard') }}">← Back to Dashboard</a>
+            {% endif %}
+
+        </div>
+
+    </div>
 </div>
 {% endblock %}

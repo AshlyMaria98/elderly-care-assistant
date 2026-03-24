@@ -193,6 +193,7 @@ th, td {
     justify-content: center;
     align-items: center;
     min-height: 80vh;
+     gap: 30px; 
 }
 
 /* Use your OLD glass style */
@@ -200,7 +201,7 @@ th, td {
     width: 420px;
     padding: 40px;
     border-radius: 20px;
-
+    margin-bottom: 20px;
     background: #ffffff;
 
     box-shadow: 0 15px 30px rgba(0,0,0,0.2);
@@ -292,4 +293,10 @@ th, td {
 }
 .bmi-page .glass-card {
     box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+/* ===== MODULE 2 FIX ===== */
+.module2-card {
+    background: white !important;
+    backdrop-filter: none !important;
+    color: #222;
 }

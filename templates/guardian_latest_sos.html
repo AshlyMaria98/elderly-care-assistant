@@ -1,39 +1,40 @@
 {% extends "base.html" %}
 {% block body_class %}dashboard-mode{% endblock %}
+
 {% block content %}
 
 <div class="container mt-4">
 <br>
-<h1 class="sos-page-title">
-    🚨 Latest SOS Alert
-</h1>
-{% if alert %}
-<div class="sos-wrapper">
-    <div class="sos-card">
 
-        <h3 class="sos-name">{{ alert.elder_name }}</h3>
+<h1 class="sos-page-title">🚨 Latest SOS Alerts</h1>
 
-        <p class="sos-time">
-            <strong>Time:</strong> {{ alert.date_time }}
-        </p>
+{% if alerts %}
+    <div class="sos-wrapper">
 
-        <p class="sos-msg">
-            {{ alert.message }}
-        </p>
+        {% for a in alerts %}
+        <div class="sos-card">
 
-        {% if alert.status == 'pending' %}
-            <a href="/resolve_sos/{{ alert.id }}">
-                <button class="sos-btn-danger">🚨 Mark Resolved</button>
+            <h3 class="sos-name">{{ a.elder_name }}</h3>
+
+            <p class="sos-time">
+                <strong>Time:</strong> {{ a.date_time }}
+            </p>
+
+            <p><strong>Status:</strong> {{ a.status }}</p>
+            {% if a.status == 'pending' %}
+             <a href="{{ url_for('resolve_sos', id=a.id) }}">
+            <button class="sos-btn-danger">🚨 Mark Resolved</button>
             </a>
-        {% else %}
+            {% else %}
             <p class="sos-status resolved">✔ Resolved</p>
-        {% endif %}
+            {% endif %}
+        </div>
+        {% endfor %}
 
     </div>
-</div>
 
 {% else %}
-<p style="text-align:center;">No SOS alerts</p>
+    <p style="text-align:center;">No active SOS alerts</p>
 {% endif %}
 
 <div class="sos-history-link">

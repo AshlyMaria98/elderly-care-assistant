@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block body_class %}view-tasks-page{% endblock %}
+{% block body_class %}dashboard-mode view-tasks-page{% endblock %}
 
 {% block content %}
 <style>
@@ -25,18 +25,14 @@
         gap: 20px;
     }
 
-    .card {
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        background: rgba(255, 255, 255, 0.35);
-        border-radius: 20px;
-        padding: 22px;
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-        color: #1e3d4a;
-        transition: 0.3s ease;
-    }
-
+    .task-container .card {
+    background: white !important;   /* remove glass */
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    color: #1e293b;
+    text-align: left;
+}
     .card:hover {
         transform: translateY(-4px);
     }
@@ -69,48 +65,60 @@
     }
 
     .back-link {
-        display: block;
+        display: inline-block;
         text-align: center;
         margin-top: 30px;
         text-decoration: none;
-        color: #1e3d4a;
+        color: #ffffff;
         font-weight: bold;
-    }
+        padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(6px);
+}
+    
 </style>
+<div class="center-wrapper">
+    <div class="dashboard-wrapper">
 
-<div class="container">
-    <h2>My Daily Tasks</h2>
+        <h2 class="dashboard-heading">My Daily Tasks</h2>
 
-    <div class="task-container">
-        {% for t in tasks %}
-            <div class="card">
-                {% if session['role'] == 'guardian' %}
-                    <small><strong>Elder:</strong> {{ t['elder_name'] }}</small><br><br>
-                {% endif %}
+        <div class="container">
 
-                <strong style="font-size: 1.1em;">{{ t['task_name'] }}</strong><br>
-                <p>Date: {{ t['date'] }}</p>
-                
-                {% if t['completed'] == 1 %}
-                    <span class="completed">✓ Completed</span>
+            <div class="task-container">
+                {% for t in tasks %}
+                    <div class="card">
+                        {% if session['role'] == 'guardian' %}
+                            <small><strong>Elder:</strong> {{ t['elder_name'] }}</small><br><br>
+                        {% endif %}
+
+                        <strong style="font-size: 1.1em;">{{ t['task_name'] }}</strong><br>
+                        <p>Date: {{ t['date'] }}</p>
+                        
+                        {% if t['completed'] == 1 %}
+                            <span class="completed">✓ Completed</span>
+                        {% else %}
+                            <span class="pending">⌛ Pending</span>
+                            <form action="{{ url_for('complete_task', id=t['id']) }}" method="get">
+                                <button type="submit" class="complete-btn">
+                                    Mark Completed
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
                 {% else %}
-                    <span class="pending">⌛ Pending</span>
-                    <form action="{{ url_for('complete_task', id=t['id']) }}" method="get">
-                        <button type="submit" class="complete-btn">
-                            Mark Completed
-                        </button>
-                    </form>
-                {% endif %}
+                    <div style="text-align: center; grid-column: 1 / -1;">
+                        <p style="color:white;">No tasks found.</p>
+                    </div>
+                {% endfor %}
             </div>
-        {% else %}
-            <div style="text-align: center; grid-column: 1 / -1;">
-                <p>No tasks found.</p>
-            </div>
-        {% endfor %}
-    </div>
 
-    <a href="{{ url_for('view_reminders') }}" class="back-link">
-        ← Back
-    </a>
+            <a href="{{ url_for('view_reminders') }}" class="back-link">
+                ← Back
+            </a>
+
+        </div>
+
+    </div>
 </div>
 {% endblock %}

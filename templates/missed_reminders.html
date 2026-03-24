@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block body_class %}missed-reminders-page{% endblock %}
+{% block body_class %}dashboard-mode missed-reminders-page{% endblock %}
 
 {% block content %}
 <style>
@@ -12,7 +12,7 @@
 
     h2 {
         text-align: center;
-        color: #1e3d4a;
+        color: white;
         margin-bottom: 25px;
         font-weight: 600;
         letter-spacing: 1px;
@@ -21,7 +21,7 @@
     .card {
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        background: rgba(255, 255, 255, 0.35);
+        background: white(231, 229, 229, 0.35);
         border-radius: 20px;
         padding: 22px;
         margin: 15px 0;
@@ -50,39 +50,50 @@
     }
 
     .back-link {
-        display: block;
-        text-align: center;
-        margin-top: 30px;
-        text-decoration: none;
-        color: #1e3d4a;
-        font-weight: bold;
+         display: inline-block;
+    margin-top: 30px;
+    color: white;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(6px);
     }
 </style>
 
-<div class="container">
-    <h2>Missed Reminders</h2>
+<div class="center-wrapper">
+    <div class="dashboard-wrapper">
 
-    {% for r in reminders %}
-        <div class="card">
-            {% if session['role'] == 'guardian' %}
-                <small><strong>Elder:</strong> {{ r['elder_name'] }}</small><br><br>
-            {% endif %}
+        <h2 class="dashboard-heading">Missed Reminders</h2>
 
-            <div class="title">{{ r['title'] }}</div>
-            <p class="info-text"><strong>Date:</strong> {{ r['date'] }}</p>
-            <p class="info-text"><strong>Time:</strong> {{ r['time'] }}</p>
-            <p style="color: #e74c3c; font-weight: bold; font-size: 0.8em; margin-top: 10px;">
-                ⚠️ This reminder was missed!
-            </p>
+        <div class="container">
+
+            {% for r in reminders %}
+                <div class="card">
+                    {% if session['role'] == 'guardian' %}
+                        <small><strong>Elder:</strong> {{ r['elder_name'] }}</small><br><br>
+                    {% endif %}
+
+                    <div class="title">{{ r['title'] }}</div>
+                    <p class="info-text"><strong>Date:</strong> {{ r['date'] }}</p>
+                    <p class="info-text"><strong>Time:</strong> {{ r['time'] }}</p>
+
+                    <p style="color: #ef4444; font-weight: bold; font-size: 0.9em; margin-top: 10px;">
+                        ⚠️ This reminder was missed!
+                    </p>
+                </div>
+            {% else %}
+                <div class="card" style="text-align: center;">
+                    <p>No missed reminders today. Good job!</p>
+                </div>
+            {% endfor %}
+
+            <a href="{{ url_for('view_reminders') }}" class="back-link">
+                ← Back
+            </a>
+
         </div>
-    {% else %}
-        <div class="card" style="text-align: center;">
-            <p>No missed reminders today. Good job!</p>
-        </div>
-    {% endfor %}
 
-    <a href="{{ url_for('view_reminders') }}" class="back-link">
-        ← Back
-    </a>
+    </div>
 </div>
 {% endblock %}

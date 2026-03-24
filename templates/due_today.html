@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block body_class %}due-today-page{% endblock %}
+{% block body_class %}dashboard-mode due-today-page{% endblock %}
 
 {% block content %}
 <style>
@@ -12,7 +12,7 @@
 
     h2 {
         text-align: center;
-        color: #1e3d4a;
+        color: white;
         margin-bottom: 25px;
         font-weight: 600;
         letter-spacing: 1px;
@@ -21,7 +21,7 @@
     .card {
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        background: rgba(255, 255, 255, 0.35);
+        background: white(255, 255, 255, 0.35);
         border-radius: 20px;
         padding: 22px;
         margin: 15px 0;
@@ -48,17 +48,14 @@
     }
 
     .back-link {
-        display: block;
-        text-align: center;
-        margin-top: 30px;
-        text-decoration: none;
-        color: #523737;
-        font-weight: bold;
-        padding: 10px;
-        backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
+         display: inline-block;
+    margin-top: 30px;
+    color: white;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(6px);
         transition: 0.3s;
     }
 
@@ -66,21 +63,24 @@
         background: rgba(255, 255, 255, 0.4);
     }
 </style>
+<div class="center-wrapper">
+     <div class="dashboard-wrapper">
+        <h2 class="dashboard-heading">Due Today</h2>
 
-<div class="container">
-    <h2>Due Today</h2>
+        <div class="container">
+             <div class="Due-container">
+            
+                {% for r in reminders %}
+                      <div class="card">
+                          {% if session['role'] == 'guardian' %}
+                             <small><strong>Elder:</strong> {{ r['elder_name'] }}</small><br><br>
+                 {% endif %}
 
-    {% for r in reminders %}
-        <div class="card">
-            {% if session['role'] == 'guardian' %}
-                <small><strong>Elder:</strong> {{ r['elder_name'] }}</small><br><br>
-            {% endif %}
-
-            <div class="title">{{ r['title'] }}</div>
-            <p class="info-text"><strong>Date:</strong> {{ r['date'] }}</p>
-            <p class="info-text"><strong>Time:</strong> {{ r['time'] }}</p>
-        </div>
-    {% else %}
+                 <div class="title">{{ r['title'] }}</div>
+                    <p class="info-text"><strong>Date:</strong> {{ r['date'] }}</p>
+                    <p class="info-text"><strong>Time:</strong> {{ r['time'] }}</p>
+                 </div>
+                 {% else %}
         <div class="card" style="text-align: center;">
             <p>No reminders today. Relax!</p>
         </div>

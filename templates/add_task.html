@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
-{% block body_class %}task-page{% endblock %}
+{% block body_class %}dashboard-mode task-page{% endblock %}
 
 {% block content %}
 <style>
     /* Specific styles for this page */
     .container {
-        width: 650px;
-        margin: 40px auto;
+        width: 550px;
+        margin: 50px auto;
     }
 
     .card {
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        background: rgba(255, 255, 255, 0.35);
+        background: white(255, 255, 255, 0.35);
         border-radius: 20px;
         padding: 22px;
         margin: 15px 0;
@@ -64,36 +64,50 @@
         text-decoration: none;
         color: #1e3d4a;
     }
+    .center-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;   /* IMPORTANT */
+}
 </style>
+<div class="center-wrapper">
+    <div class="dashboard-wrapper">
 
-<div class="container">
-    <div class="card">
-        <h2>Add Daily Task</h2>
+        <div class="container">
+            <div class="glass-card">
 
-        <form method="POST">
-            {% if session['role'] == 'guardian' %}
-                <label>Select Elder:</label>
-                <select name="elder_id" required>
-                    {% for elder in elders %}
-                        <option value="{{ elder['id'] }}">
-                            {{ elder['fullname'] }}
-                        </option>
-                    {% endfor %}
-                </select>
-            {% endif %}
+                <h2 class="dashboard-heading">Add Daily Task</h2>
 
-            <label>Task Name:</label>
-            <input type="text" name="task_name" required>
+                <form method="POST">
 
-            <label>Date:</label>
-            <input type="date" name="date" required>
+                    {% if session['role'] == 'guardian' %}
+                        <label>Select Elder:</label>
+                        <select name="elder_id" required>
+                            {% for elder in elders %}
+                                <option value="{{ elder['id'] }}">
+                                    {{ elder['fullname'] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    {% endif %}
 
-            <button type="submit">Save Task</button>
-        </form>
+                    <label>Task Name:</label>
+                    <input type="text" name="task_name" required>
 
-        <a href="{{ url_for('view_reminders') }}" class="back-link">
-            ← Back
-        </a>
+                    <label>Date:</label>
+                    <input type="date" name="date" required>
+
+                    <button type="submit">Save Task</button>
+                </form>
+
+                <a href="{{ url_for('view_reminders') }}" class="back-link">
+                    ← Back
+                </a>
+
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

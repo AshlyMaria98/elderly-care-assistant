@@ -1287,18 +1287,16 @@ def guardian_latest_sos():
             return redirect(url_for('login'))
 
         conn = get_db_connection()
-
-        latest = conn.execute("""
-             SELECT s.*, u.fullname as elder_name
+        alerts = conn.execute("""
+            SELECT s.*, u.fullname as elder_name
             FROM sos_alerts s
-             JOIN users u ON s.elder_id = u.id
+            JOIN users u ON s.elder_id = u.id
             WHERE u.guardian_id = ?
             ORDER BY s.date_time DESC
-            LIMIT 1
-         """, (session['user_id'],)).fetchone()
+            LIMIT 2
+        """, (session['user_id'],)).fetchall()
 
         conn.close()
-
-        return render_template('guardian_latest_sos.html', alert=latest)    
+        return render_template('guardian_latest_sos.html', alerts=alerts)   
 if __name__ == '__main__':
     app.run(debug=True)

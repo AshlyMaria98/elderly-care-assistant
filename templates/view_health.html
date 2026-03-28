@@ -11,6 +11,7 @@
 
         {% if records %}
         <!-- Health Records Table -->
+        <div class="table-wrapper">
         <table>
             <tr>
                 <th>Date</th>
@@ -45,11 +46,14 @@
             </tr>
             {% endfor %}
         </table>
+        </div>
 
         <!-- Chart Section -->
         <div style="margin-top:40px;">
             <h3>Health Metrics Chart</h3>
-            <canvas id="healthChart" width="400" height="200"></canvas>
+           <div class="chart-container">
+            <canvas id="healthChart"></canvas>
+            </div>
         </div>
 
         <!-- Chart.js -->
@@ -101,6 +105,7 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: { position: 'top' },
                         title: { display: true, text: 'Health Metrics Over Time' }

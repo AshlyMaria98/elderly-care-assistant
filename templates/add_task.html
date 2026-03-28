@@ -6,14 +6,18 @@
 <style>
     /* Specific styles for this page */
     .container {
-        width: 550px;
-        margin: 50px auto;
-    }
+         width: 100%;
+    max-width: 550px;
+    margin: 50px auto;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
 
     .card {
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        background: white(255, 255, 255, 0.35);
+        background: white;
         border-radius: 20px;
         padding: 22px;
         margin: 15px 0;
@@ -75,7 +79,7 @@
     <div class="dashboard-wrapper">
 
         <div class="container">
-            <div class="glass-card">
+            <div class="card">
 
                 <h2 class="dashboard-heading">Add Daily Task</h2>
 

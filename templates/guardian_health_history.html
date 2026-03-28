@@ -8,51 +8,55 @@
         <p style="text-align:center;">Age: {{ elder.age }} | Guardian View</p>
 
         {% if records %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>BP</th>
-                    <th>Sugar</th>
-                    <th>Pulse</th>
-                    <th>Weight</th>
-                    <th>Height</th>
-                    <th>BMI</th>
-                    <th>Insights</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for r, msg in zip(records, insights) %}
-                <tr>
-                    <td>{{ r.date|datetimeformat }}</td>
 
-                    <td {% if "High BP" in msg|string %}style="color:red;font-weight:600"{% endif %}>
-                        {{ r.bp or "-" }}
-                    </td>
+        <!-- TABLE FIX -->
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>BP</th>
+                        <th>Sugar</th>
+                        <th>Pulse</th>
+                        <th>Weight</th>
+                        <th>Height</th>
+                        <th>BMI</th>
+                        <th>Insights</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r, msg in zip(records, insights) %}
+                    <tr>
+                        <td>{{ r.date|datetimeformat }}</td>
 
-                    <td {% if "High sugar" in msg|string %}style="color:red;font-weight:600"{% endif %}>
-                        {{ r.sugar or "-" }}
-                    </td>
+                        <td {% if "High BP" in msg|string %}style="color:red;font-weight:600"{% endif %}>
+                            {{ r.bp or "-" }}
+                        </td>
 
-                    <td>{{ r.pulse or "-" }}</td>
-                    <td>{{ r.weight or "-" }}</td>
-                    <td>{{ r.height or "-" }}</td>
+                        <td {% if "High sugar" in msg|string %}style="color:red;font-weight:600"{% endif %}>
+                            {{ r.sugar or "-" }}
+                        </td>
 
-                    <td {% if r.bmi > 25 or r.bmi < 18.5 %}style="color:red;font-weight:600"{% endif %}>
-                        {{ r.bmi or "-" }}
-                    </td>
+                        <td>{{ r.pulse or "-" }}</td>
+                        <td>{{ r.weight or "-" }}</td>
+                        <td>{{ r.height or "-" }}</td>
 
-                    <td>
-                        {% for m in msg %}
-                            <div style="margin-bottom:3px;">• {{ m }}</div>
-                        {% endfor %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        <td {% if r.bmi > 25 or r.bmi < 18.5 %}style="color:red;font-weight:600"{% endif %}>
+                            {{ r.bmi or "-" }}
+                        </td>
 
-        <!-- Your original BP trend boxes -->
+                        <td>
+                            {% for m in msg %}
+                                <div style="margin-bottom:3px;">• {{ m }}</div>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- BP BOXES -->
         <div style="margin-top:40px;">
             <h3 style="text-align:center;">BP Trend (Systolic)</h3>
 
@@ -66,10 +70,10 @@
             </div>
         </div>
 
-        <!-- ADDED SMALL CHART -->
-        <div style="margin-top:40px;">
+        <!-- ✅ CHART FIX -->
+        <div class="chart-container">
             <h3 style="text-align:center;">Health Trend Chart</h3>
-            <canvas id="healthChart" height="120"></canvas>
+            <canvas id="healthChart"></canvas>
         </div>
 
         {% else %}
@@ -105,27 +109,25 @@ new Chart(ctx, {
                 label: 'BP',
                 data: {{ bp_list|tojson }},
                 borderColor: 'red',
-                fill: false,
                 tension: 0.3
             },
             {
                 label: 'Sugar',
                 data: {{ sugar_list|tojson }},
                 borderColor: 'blue',
-                fill: false,
                 tension: 0.3
             },
             {
                 label: 'Pulse',
                 data: {{ pulse_list|tojson }},
                 borderColor: 'green',
-                fill: false,
                 tension: 0.3
             }
         ]
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,  // ⭐ IMPORTANT FIX
         plugins: {
             legend: { display: true }
         }
@@ -138,17 +140,20 @@ new Chart(ctx, {
 </script>
 
 <style>
-.content-box {
-    background: rgba(255,255,255,0.95);
-    padding: 40px;
-    border-radius: 15px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+
+/* Chart responsive fix */
+.chart-container {
+    width: 100%;
+    height: 260px;
+    margin-top: 40px;
 }
 
+/* Table styling */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    min-width: 600px; /* keeps scroll behavior */
 }
 
 th, td {
@@ -165,6 +170,7 @@ th {
 tr:hover {
     background: #f0f0f0;
 }
+
 </style>
 
 {% endblock %}

@@ -8,6 +8,7 @@ body {
     background: url('/static/bg.jpg') no-repeat center center fixed;
     background-size: cover;
     position: relative;
+    overflow-x: hidden;
 }
 
 /* Dark overlay for dashboard */
@@ -29,10 +30,14 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 40px;
+    padding: 12px 15px; /* reduced for mobile */
+    flex-wrap: wrap; /* allows wrapping */
     background: rgba(255,255,255,0.85);
     backdrop-filter: blur(8px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+     position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .navbar a {
@@ -40,6 +45,8 @@ body {
     margin-left: 20px;
     font-weight: 500;
     color: #222;
+    margin-left: 10px;
+    font-size: 14px;
 }
 
 .back-btn {
@@ -55,6 +62,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 15px;
 }
 
 /* ========================= */
@@ -62,14 +70,15 @@ body {
 /* ========================= */
 
 .glass-card {
-    width: 420px;
-    max-width: 90%;
+    width: 100%;
+    max-width: 420px;
     padding: 45px;
     border-radius: 22px;
     background: rgba(255,255,255,0.25);
     backdrop-filter: blur(14px);
     box-shadow: 0 25px 50px rgba(0,0,0,0.25);
     text-align: center;
+    margin: auto;
 }
 
 /* ========================= */
@@ -78,6 +87,8 @@ body {
 
 input, select {
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 12px;
     margin: 10px 0;
     border-radius: 10px;
@@ -94,6 +105,7 @@ button {
     font-weight: 500;
     cursor: pointer;
     transition: 0.3s ease;
+    
 }
 
 button:hover {
@@ -122,7 +134,7 @@ button:hover {
     max-width: 950px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 35px;
+    gap: 20px;
 }
 
 .card {
@@ -155,6 +167,7 @@ button:hover {
     padding: 40px;
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    overflow-x: auto;
 }
 .dashboard-wrapper {
     width: 100%;
@@ -172,6 +185,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    min-width: 600px;
 }
 
 th, td {
@@ -179,11 +193,18 @@ th, td {
     border-bottom: 1px solid #ddd;
     text-align: center;
 }
-
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
 /* Responsive */
 @media (max-width: 768px) {
     .dashboard {
-        grid-template-columns: 1fr;
+        width: 100%;
+        max-width: 950px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
     }
 }
 /* ===== MODULE 4 SUPPORT (MATCH OLD THEME) ===== */
@@ -229,6 +250,8 @@ th, td {
     border: none;
     border-radius: 12px;
     cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
 }
 
 .sos-button:hover {
@@ -272,6 +295,7 @@ th, td {
     background: #102655;
     color: white;
     font-weight: 600;
+    
 }
 .sos-status.resolved {
     display: inline-block;
@@ -299,4 +323,16 @@ th, td {
     background: white !important;
     backdrop-filter: none !important;
     color: #222;
+}
+.chart-container {
+    width: 100%;
+    max-width: 100%;
+    height: 250px;
+}
+.sos-table {
+    min-width: 600px;  /* forces scroll instead of breaking layout */
+}
+.table-container {
+    width: 100%;
+    overflow-x: auto;
 }
